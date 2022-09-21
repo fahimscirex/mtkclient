@@ -7,7 +7,8 @@ from binascii import hexlify
 from mtkclient.Library.utils import LogBase, logsetup, getint
 from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.error import ErrorHandler
-
+from mtkclient.Library.utils import progress
+from mtkclient.config.brom_config import efuse
 
 class DA_handler(metaclass=LogBase):
     def __init__(self, mtk, loglevel=logging.INFO):
@@ -22,7 +23,7 @@ class DA_handler(metaclass=LogBase):
         self.pid = mtk.config.pid
         self.interface = mtk.config.interface
         self.pathconfig = pathconfig()
-        self.__logger = logsetup(self, self.__logger, loglevel)
+        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
         self.eh = ErrorHandler()
         self.mtk = mtk
 
@@ -37,31 +38,35 @@ class DA_handler(metaclass=LogBase):
                 data = data[idx:]
                 length = unpack("<I", data[0x20:0x24])[0]
                 time.sleep(0.15)
-                data = bytearray();
-                startidx = idx;
+                data = bytearray()
+                startidx = idx
+                multiplier = 32
                 while True:
                     try:
-                        data.extend(b"".join([pack("<I", val) for val in self.mtk.preloader.read32(0x200000 + idx, 4)]))
-                        idx = idx + 16;
-                        sys.stdout.write("\r"+str(length-(idx-startidx)))
-                        sys.stdout.flush()
-                        if ((idx-startidx) > length):
-                            #done reading
-                            break;
+                        data.extend(b"".join(
+                            [pack("<I", val) for val in self.mtk.preloader.read32(0x200000 + idx, (4 * multiplier))]))
+                        idx = idx + (16 * multiplier)
+                        # sys.stdout.write("\r"+str(length-(idx-startidx)))
+                        # sys.stdout.flush()                        sys.stdout.write("\r"+str(length-(idx-startidx)))
+                        if ((idx - startidx) > length):
+                            # done reading
+                            break
                     except Exception as err:
-                        self.exception(str(err))
-                        break;
-                data = bytes(data);
+                        self.error(str(err))
+                        break
+                data = bytes(data)
                 preloader = data[:length]
                 idx = data.find(b"MTK_BLOADER_INFO")
                 if idx != -1:
                     filename = data[idx + 0x1B:idx + 0x1B + 0x30].rstrip(b"\x00").decode('utf-8')
                     if preloader is not None:
-                        pfilename = os.path.join(self.mtk.pathconfig.get_loader_path(), "Preloader", filename)
-                        if not os.path.exists(pfilename):
-                            with open(pfilename, "wb") as wf:
-                                wf.write(preloader)
-                                print(f"Successfully extracted preloader for this device to: {pfilename}")
+                        if not os.path.exists(filename):
+                            try:
+                                with open(filename, "wb") as wf:
+                                    wf.write(preloader)
+                                    print(f"Successfully extracted preloader for this device to: {filename}")
+                            except:
+                                pass
                 return preloader
         except Exception as err:
             self.error(str(err))
@@ -69,41 +74,52 @@ class DA_handler(metaclass=LogBase):
 
     def configure_da(self, mtk, preloader):
         mtk.port.cdc.connected = mtk.port.cdc.connect()
-        if mtk.port.cdc.connected and os.path.exists(".state"):
-            info = mtk.daloader.reinit()
+        if mtk.port.cdc.connected is None or not mtk.port.cdc.connected:
+            mtk.preloader.init()
         else:
-            if (hasattr(mtk.port.config, "socid") and mtk.port.config.socid != b"") or mtk.preloader.init(): #at least for now making it possible to continue without re-init
-                if mtk.config.target_config["daa"]:
-                    mtk = mtk.bypass_security()
-                    self.info("Device is protected.")
-                    if mtk is not None:
-                        if mtk.config.is_brom:
-                            self.info("Device is in BROM mode. Trying to dump preloader.")
-                            if preloader is None:
-                                preloader = self.dump_preloader_ram()
-                else:
-                    self.info("Device is unprotected.")
-                    if mtk.config.is_brom:
-                        mtk = mtk.bypass_security()  # Needed for dumping preloader
+            if mtk.port.cdc.connected and os.path.exists(".state"):
+                info = mtk.daloader.reinit()
+                return mtk
+        if mtk.config.target_config is None:
+            self.info("Please disconnect, start mtkclient and reconnect.")
+            return None
+        if mtk.config.target_config["daa"]:
+            mtk = mtk.bypass_security()
+            self.mtk = mtk
+            self.info("Device is protected.")
+            if mtk is not None:
+                if mtk.config.is_brom:
+                    self.info("Device is in BROM mode. Trying to dump preloader.")
+                    if preloader is None:
+                        preloader = self.dump_preloader_ram()
+        else:
+            self.info("Device is unprotected.")
+            # if not mtk.config.is_brom:
+            #   self.mtk.preloader.reset_to_brom()
+            if mtk.config.is_brom:
+                self.info("Device is in BROM-Mode. Bypassing security.")
+                mtk = mtk.bypass_security()  # Needed for dumping preloader
+                if mtk is not None:
+                    self.mtk = mtk
+                    if preloader is None:
+                        self.warning(
+                            "Device is in BROM mode. No preloader given, trying to dump preloader from ram.")
+                        preloader = self.dump_preloader_ram()
                         if preloader is None:
-                            self.warning(
-                                "Device is in BROM mode. No preloader given, trying to dump preloader from ram.")
-                            preloader = self.dump_preloader_ram()
-                            if preloader is None:
-                                self.error("Failed to dump preloader from ram.")
-                if not mtk.daloader.upload_da(preloader=preloader):
-                    self.error("Error uploading da")
-                    return False
-                else:
-                    mtk.daloader.writestate()
+                            self.error("Failed to dump preloader from ram.")
             else:
-                return False
+                self.info("Device is in Preloader-Mode :(")
+        if not mtk.daloader.upload_da(preloader=preloader):
+            return None
+        else:
+            mtk.daloader.writestate()
+            return mtk
 
-    def da_gpt(self, directory:str):
+    def da_gpt(self, directory: str):
         if directory is None:
             directory = ""
 
-        sfilename = os.path.join(directory, f"gpt_main.bin")
+        sfilename = os.path.join(directory, f"gpt.bin")
         data, guid_gpt = self.mtk.daloader.get_gpt()
         if guid_gpt is None:
             self.error("Error reading gpt")
@@ -184,7 +200,7 @@ class DA_handler(metaclass=LogBase):
             storedir = directory
             if not os.path.exists(storedir):
                 os.mkdir(storedir)
-            sfilename = os.path.join(storedir, f"gpt_main.bin")
+            sfilename = os.path.join(storedir, f"gpt.bin")
             with open(sfilename, "wb") as wf:
                 wf.write(data)
 
@@ -222,13 +238,13 @@ class DA_handler(metaclass=LogBase):
     def da_rf(self, filename, parttype):
         if self.mtk.daloader.daconfig.flashtype == "ufs":
             if parttype == "lu0":
-                length = self.mtk.daloader.daconfig.flashsize[0]
+                length = self.mtk.daloader.daconfig.flashsize
             elif parttype == "lu1":
-                length = self.mtk.daloader.daconfig.flashsize[1]
+                length = self.mtk.daloader.daconfig.flashsize
             elif parttype == "lu2":
-                length = self.mtk.daloader.daconfig.flashsize[2]
+                length = self.mtk.daloader.daconfig.flashsize
             else:
-                length = self.mtk.daloader.daconfig.flashsize[0]
+                length = self.mtk.daloader.daconfig.flashsize
         else:
             length = self.mtk.daloader.daconfig.flashsize
         print(f"Dumping sector 0 with flash size {hex(length)} as {filename}.")
@@ -419,6 +435,37 @@ class DA_handler(metaclass=LogBase):
         elif countFP != len(partitions) and countFP > 1:
             print(f"Failed to format all partitions.")
 
+    def da_ess(self, sector: int, sectors: int, parttype: str):
+        if parttype == "user" or parttype is None:
+            wipedata = b"\x00" * 0x200000
+            error = False
+            while sectors:
+                sectorsize = sectors * self.mtk.daloader.daconfig.pagesize
+                wsize = min(sectorsize, 0x200000)
+                if self.mtk.daloader.writeflash(addr=sector * self.mtk.daloader.daconfig.pagesize,
+                                                length=wsize,
+                                                filename=None,
+                                                wdata=wipedata[:wsize],
+                                                parttype="user"):
+                    print(
+                        f"Failed to format sector {str(sector)} with " +
+                        f"sector count {str(sectors)}.")
+                    error = True
+                    break
+                sectors -= (wsize // self.mtk.daloader.daconfig.pagesize)
+                sector += (wsize // self.mtk.daloader.daconfig.pagesize)
+            if not error:
+                print(
+                    f"Formatted sector {str(sector)} with sector count {str(sectors)}.")
+        else:
+            pos = 0
+            self.mtk.daloader.formatflash(addr=sector * self.mtk.daloader.daconfig.pagesize,
+                                          length=min(sectors*self.mtk.daloader.daconfig.pagesize,0xF000000),
+                                          partitionname=None,
+                                          parttype=parttype,
+                                          display=True)
+            print(f"Formatted sector {str(pos // 0x200)}")
+
     def da_es(self, partitions: list, parttype: str, sectors: int):
         if parttype == "user" or parttype is None:
             i = 0
@@ -462,7 +509,8 @@ class DA_handler(metaclass=LogBase):
         else:
             pos = 0
             for partitionname in partitions:
-                self.mtk.daloader.formatflash(addr=pos, length=0xF000000, partitionname=partitionname,
+                self.mtk.daloader.formatflash(addr=pos, length=min(sectors * self.mtk.daloader.daconfig.pagesize,0xF000000),
+                                              partitionname=partitionname,
                                               parttype=parttype,
                                               display=True)
                 print(f"Formatted sector {str(pos // 0x200)}")
@@ -481,15 +529,49 @@ class DA_handler(metaclass=LogBase):
                 print(f"Failed to write {partfilename} to sector {str(pos // 0x200)} with " +
                       f"sector count {str(size // 0x200)}.")
 
+    def da_efuse(self):
+        if self.mtk.config.chipconfig.efuse_addr is not None:
+            base = self.mtk.config.chipconfig.efuse_addr
+            hwcode = self.mtk.config.hwcode
+            efuseconfig = efuse(base,hwcode)
+            for idx in range(len(efuseconfig.efuses)):
+                addr = efuseconfig.efuses[idx]
+                data = bytearray(self.mtk.daloader.peek(addr=addr, length=4))
+                self.info(f"EFuse Idx {hex(idx)}: {data.hex()}")
+
     def da_peek(self, addr: int, length: int, filename: str):
-        data = self.mtk.daloader.peek(addr=addr, length=length)
-        if data != b"":
-            if filename is not None:
-                open(filename, "wb").write(data)
-                self.info(f"Successfully wrote data from {hex(addr)}, length {hex(length)} to {filename}")
-            else:
-                self.info(
-                    f"Data read from {hex(addr)}, length: {hex(length)}:\n{hexlify(data).decode('utf-8')}\n")
+        bytestoread = length
+        pos = 0
+        pagesize = 0x200
+        if self.mtk.daloader.xflash:
+            pagesize = self.mtk.daloader.get_packet_length()
+        pg = progress(pagesize)
+        bytesread = 0
+        wf = None
+        if filename is not None:
+            wf = open(filename, "wb")
+        retval = bytearray()
+        while bytestoread > 0:
+            msize = min(bytestoread, pagesize)
+            try:
+                data = self.mtk.daloader.peek(addr=addr + pos, length=msize)
+                if wf is not None:
+                    wf.write(data)
+                else:
+                    retval.extend(data)
+                pg.show_progress("Dump:", bytesread, length)
+                pos += len(data)
+                bytesread += len(data)
+                bytestoread -= len(data)
+            except:
+                pass
+        pg.show_progress("Dump:", 100, 100)
+        if filename is not None:
+            wf.close()
+            self.info(f"Successfully wrote data from {hex(addr)}, length {hex(length)} to {filename}")
+        else:
+            self.info(
+                f"Data read from {hex(addr)}, length: {hex(length)}:\n{hexlify(retval).decode('utf-8')}\n")
 
     def da_poke(self, addr: int, data: str, filename: str):
         if filename is not None:
@@ -504,29 +586,25 @@ class DA_handler(metaclass=LogBase):
             self.info(f"Successfully wrote data to {hex(addr)}, length {hex(len(data))}")
 
     def handle_da_cmds(self, mtk, cmd: str, args):
-        try:
-            preloader = args.preloader
-        except:
-            preloader = None
-        self.configure_da(mtk, preloader)
-
+        if mtk is None or mtk.daloader is None:
+            self.error("Error on running da, aborting :(")
+            sys.exit(1)
+        if mtk.daloader.config.generatekeys and mtk.daloader.is_patched():
+            mtk.daloader.keys()
         if cmd == "gpt":
             directory = args.directory
             self.da_gpt(directory=directory)
-            self.close()
         elif cmd == "printgpt":
             data, guid_gpt = mtk.daloader.get_gpt()
             if guid_gpt is None:
                 self.error("Error reading gpt")
             else:
                 guid_gpt.print()
-            self.close()
         elif cmd == "r":
             partitionname = args.partitionname
             parttype = args.parttype
             filename = args.filename
             self.da_read(partitionname=partitionname, parttype=parttype, filename=filename)
-            self.close()
         elif cmd == "rl":
             directory = args.directory
             parttype = args.parttype
@@ -535,12 +613,10 @@ class DA_handler(metaclass=LogBase):
             else:
                 skip = []
             self.da_rl(directory=directory, parttype=parttype, skip=skip)
-            self.close()
         elif cmd == "rf":
             filename = args.filename
             parttype = args.parttype
             self.da_rf(filename=filename, parttype=parttype)
-            self.close()
         elif cmd == "rs":
             start = getint(args.startsector)
             sectors = getint(args.sectors)
@@ -550,7 +626,6 @@ class DA_handler(metaclass=LogBase):
                 print(f"Dumped sector {str(start)} with sector count {str(sectors)} as {filename}.")
             else:
                 print(f"Failed to dump sector {str(start)} with sector count {str(sectors)} as {filename}.")
-            self.close()
         elif cmd == "ro":
             start = getint(args.offset)
             length = getint(args.length)
@@ -560,11 +635,9 @@ class DA_handler(metaclass=LogBase):
                 print(f"Dumped offset {hex(start)} with length {hex(length)} as {filename}.")
             else:
                 print(f"Failed to dump offset {hex(start)} with length {hex(length)} as {filename}.")
-            self.close()
         elif cmd == "footer":
             filename = args.filename
             self.da_footer(filename=filename)
-            self.close()
         elif cmd == "w":
             partitionname = args.partitionname
             filename = args.filename
@@ -572,12 +645,10 @@ class DA_handler(metaclass=LogBase):
             filenames = filename.split(",")
             partitions = partitionname.split(",")
             self.da_write(parttype=parttype, filenames=filenames, partitions=partitions)
-            self.close()
         elif cmd == "wl":
             directory = args.directory
             parttype = args.parttype
             self.da_wl(directory=directory, parttype=parttype)
-            self.close()
         elif cmd == "wo":
             start = getint(args.offset)
             length = getint(args.length)
@@ -599,19 +670,17 @@ class DA_handler(metaclass=LogBase):
             else:
                 print(f"Failed to write {filename} to offset {hex(start)} with " +
                       f"length {hex(length)}.")
-            self.close()
+                self.close()
         elif cmd == "wf":
             filename = args.filename
             parttype = args.parttype
             filenames = filename.split(",")
             self.da_wf(filenames=filenames, parttype=parttype)
-            self.close()
         elif cmd == "e":
             partitionname = args.partitionname
             parttype = args.parttype
             partitions = partitionname.split(",")
             self.da_erase(partitions=partitions, parttype=parttype)
-            self.close()
         elif cmd == "es":
             partitionname = args.partitionname
             parttype = args.parttype
@@ -621,23 +690,60 @@ class DA_handler(metaclass=LogBase):
                 self.close()
             partitions = partitionname.split(",")
             self.da_es(partitions=partitions, parttype=parttype, sectors=sectors)
-            self.close()
+        elif cmd == "ess":
+            sector = args.startsector
+            parttype = args.parttype
+            sectors = getint(args.sectors)
+            if args.sectors is None:
+                self.error("Sector count is missing. Usage: ess [sector] [sector count]")
+                self.close()
+            self.da_ess(sector=sector, parttype=parttype, sectors=sectors)
         elif cmd == "reset":
             if os.path.exists(".state"):
                 os.remove(".state")
-            mtk.daloader.close()
-            self.close()
+                os.remove(os.path.join("logs", "hwparam.json"))
+            mtk.daloader.shutdown(bootmode=0)
             print("Reset command was sent. Disconnect usb cable to power off.")
         elif cmd == "da":
             subcmd = args.subcmd
             if subcmd is None:
-                print("Available da cmds are: [peek, poke, generatekeys, seccfg, rpmb, meta]")
+                print("Available da cmds are: [peek, poke, generatekeys, seccfg, rpmb, meta, memdump, efuse]")
                 return
             if subcmd == "peek":
                 addr = getint(args.address)
                 length = getint(args.length)
                 filename = args.filename
                 self.da_peek(addr=addr, length=length, filename=filename)
+            elif subcmd == "memdump":
+                directory = args.directory
+                if not os.path.exists(directory):
+                    os.mkdir(directory)
+                dramaddr = 0x20000000
+                dramsize = 0x100000000 - 0x20000000 # 0xE0000000
+                bromaddr = 0
+                bromsize = 0x200000
+                sramaddr = 0x200000
+                sramsize = 0x11200000
+                efuseaddr = 0x11C10000
+                efusesize = 0x10000
+                if self.mtk.config.dram is not None:
+                    dramaddr = self.mtk.config.dram.base_address
+                    dramsize = self.mtk.config.dram.size
+                if self.mtk.config.sram is not None:
+                    sramaddr = self.mtk.config.sram.base_address
+                    sramsize = self.mtk.config.sram.size
+                self.info("Dumping brom...")
+                self.da_peek(addr=bromaddr, length=bromsize,
+                             filename=os.path.join(directory, "dump_brom.bin"))
+                self.info(f"Dumping sram at {hex(sramaddr)}, size {hex(sramsize)}...")
+                self.da_peek(addr=sramaddr, length=sramsize,
+                             filename=os.path.join(directory, "dump_sram.bin"))
+                self.info(f"Dumping dram at {hex(dramaddr)}, size {hex(dramsize-dramaddr)}...")
+                self.da_peek(addr=dramaddr, length=0x100000000-dramaddr,
+                             filename=os.path.join(directory, f"dump_dram_{hex(dramaddr)}.bin"))
+                self.info(f"Dumping efuse at {hex(efuseaddr)}, size at {hex(efusesize)}...")
+                self.da_peek(addr=efuseaddr, length=efusesize,
+                             filename=os.path.join(directory, "dump_efuse.bin"))
             elif subcmd == "poke":
                 addr = getint(args.address)
                 filename = args.filename
@@ -645,8 +751,14 @@ class DA_handler(metaclass=LogBase):
                 self.da_poke(addr=addr, data=data, filename=filename)
             elif subcmd == "generatekeys":
                 mtk.daloader.keys()
+            elif subcmd == "efuse":
+                self.da_efuse()
             elif subcmd == "seccfg":
-                mtk.daloader.seccfg(args.flag)
+                v = mtk.daloader.seccfg(args.flag)
+                if v[0]:
+                    self.info(v[1])
+                else:
+                    self.error(v[1])
             elif subcmd == "rpmb":
                 rpmb_subcmd = args.rpmb_subcmd
                 if rpmb_subcmd is None:
@@ -655,10 +767,11 @@ class DA_handler(metaclass=LogBase):
                     mtk.daloader.read_rpmb(args.filename)
                 elif rpmb_subcmd == "w":
                     mtk.daloader.write_rpmb(args.filename)
+                elif rpmb_subcmd == "e":
+                    mtk.daloader.erase_rpmb()
             elif subcmd == "meta":
                 metamode = args.metamode
                 if metamode is None:
                     print("metamode is needed [usb,uart,off]!")
                 else:
                     mtk.daloader.setmetamode(metamode)
-            self.close()

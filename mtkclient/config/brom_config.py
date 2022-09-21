@@ -1,11 +1,206 @@
-import os
-import logging
-from mtkclient.Library.utils import LogBase
-
 class damodes:
     DEFAULT = 0
     XFLASH = 1
 
+class efuse:
+    def __init__(self, base, hwcode):
+        if hwcode in [0x6570, 0x6580, 0x321, 0x335]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x60,base+0x180,base+0x184, base+0x188,
+                      base+0x120, base+0x130, base+0x140, base+0x144, base+0x18C,
+                      base+0x190, base+0x194, base+0x198, base+0x19C, base+0x1A0,
+                      0x8000000, base+0x1A4, base+0x1A8,base+0x1AC,base+0x1B0,
+                      base+0x270, base+0x300, base+0x304, base+0x308, base+0x30C,
+                      base+0x310, base+0x314]
+        elif hwcode in [0x551]:
+            self.efuses=[  base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                        base + 0x48, base + 0x60, base + 0x260, base + 0x264, base + 0x268,
+                        base + 0x120, base + 0x130, base + 0x140, base + 0x144, base + 0x26C,
+                        base + 0x270, base + 0x274, base + 0x760, base + 0x7A0, 0x8000000,
+                        0x8000000, base + 0x4C, base + 0x50, base + 0x7A4, base + 0x7B0,
+                        base + 0x278, base + 0x27C, base + 0x280, base + 0x284, base + 0x58,
+                        base + 0x54, base + 0x288, 0x8000000, 0x8000000, 0x8000008, base+0x580,
+                        base+0x7C8]
+        elif hwcode in [0x6582, 0x6595, 0x6752, 0x6795, 0x6592]:
+            self.efuses = [base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                        base + 0x48, base + 0x60, base + 0x100, base + 0x104, base + 0x108,
+                        base + 0x120, base + 0x130, base + 0x140, base + 0x144, base + 0x170,
+                        base + 0x174, base + 0x178, base + 0x17C, base + 0x180, base + 0x184,
+                        0x8000000, base+0x188, base+0x504, base+0x514,base+0x518,
+                        base+0x51C, base+0x520, base+0x524, base+0x528, base+0x52C,
+                        base+0x530, base+0x534, base+0x538, base+0x540, base+0x544,
+                        base+0x548, base+0x4C4, base+0x4C8]
+        elif hwcode in [0x6572]:
+            self.efuses=[0x40,0x100000,base+0x20,base+0x30,base+0x38,
+                      base+0x40,base+0x44, base+0x48,base+0x60,base+0x100,
+                      base+0x104, base+0x108, base+0x120, base+0x130, base+0x140,
+                      base+0x144, base+0x170, base+0x174, base+0x178, base+0x17C,
+                      base+0x180, base+0x184, 0x8000008, base+0x10C, base+0x110,
+                      base+0x114,base+0x118, base+0x11c]
+        elif hwcode in [0x601, 0x326, 0x6757, 0x8695]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x60,base+0x180,base+0x184, base+0x188,
+                      base+0x120, base+0x130, base+0x140, base+0x144, base+0x18C,
+                      base+0x190, base+0x194, base+0x27C, base+0x540, 0x8000000,
+                      0x8000000, base+0x4C]
+        elif hwcode in [0x688]:
+            self.efuses=[
+                base + 0x514, 0xFFFFFFFF, 0xE030312, base + 0x408, 0xFFFFFFFF,
+                1, base + 0x518, 0xFFFFFFFF, 0xF030313, base + 0x408, 0xFFFFFFFF,
+                2, base + 0x51C, 0xFFFFFFFF, 0x10030314, base + 0x408,
+                0xFFFFFFFF, 3, base + 0x520, 0xFFFFFFFF, 0x11030315,
+                base + 0x408, 0xFFFFFFFF, 4, base + 0x524, 0xFFFFFFFF,
+                0x12030316, base + 0x408, 0xFFFFFFFF, 5, base + 0x850,
+                0xFFFFFFFF, 0x13040317, base + 0x408, 0xFFFFFFFF, 0xFFFFFFFF,
+                base + 0x854, 0xFFFFFFFF, 0x14040318, base + 0x408, 0xFFFFFFFF,
+                0xFFFFFFFF, base + 0x858, 0xFFFFFFFF, 0x15040319, base + 0x408,
+                0xFFFFFFFF, 0xFFFFFFFF, base + 0x85C, 0xFFFFFFFF, 0x1604031A,
+                base + 0x408, 0xFFFFFFFF, 0xFFFFFFFF, base + 0x830, 0x7F,
+                0x1805012A, base + 0x52C, 0x7F000000, 0xFFFFFFFF, base + 0x80C,
+                0xFFFFFFFF, 0x5012B, base + 0x554, 0xFFFFFFFF, 0xFFFFFFFF,
+                base + 0x020, 0x1417, 0x5011B, base + 0x52C, 0x1417, 0xFFFFFFFF,
+                base + 0x060, 0x27F, 0x5011C, base + 0x530, 0x27F, 0xFFFFFFFF,
+                base + 0x4A0, 3, 0x1405011D, base + 0x530, 0x300000, 0xFFFFFFFF,
+                base + 0x4C4, 0xFFFFFFFF, 0x5011E, base + 0x540, 0xFFFFFFFF,
+                6, base + 0x4C8, 0xFFFFFFFF, 0x5011F, base + 0x544, 0xFFFFFFFF,
+                7, base + 0x808, 0x8000, 0x50120, base + 0xA48, 0x8000,
+                0xFFFFFFFF, base + 0x4A4, 8, 0x1C050121, base + 0x550,
+                0x80000000, 0xFFFFFFFF, base + 0x4C0, 1, 0xF050122, base + 0x534,
+                0x8000, 0xFFFFFFFF, base + 0x4CC, 0x1FF, 0x10050123,
+                base + 0x534, 0x1FF0000, 0xFFFFFFFF, base + 0x068, 0x1F,
+                0x7050124, base + 0x534, 0xF80, 0xFFFFFFFF, base + 0x028,
+                6, 0x1C050125, base + 0x530, 0x60000000, 0xFFFFFFFF,
+                base + 0x020, base + 0x030, base + 0x038, base + 0x040, base + 0x044,
+                base + 0x048, base + 0x04C, base + 0x050, 0x8000000, 0x8000000,
+                0xA, 0x8000008, base + 0x140, base + 0x144, base + 0x148,
+                base + 0x14C, base + 0x7A0, base + 0x7A4, base + 0x7A8, base + 0x7AC,
+                0x8000000, base + 0x7B0, base + 0x7B4, base + 0x7B8, base + 0x7BC,
+                base + 0x7C0, base + 0x7C4, base + 0x7C8, base + 0x7CC, 0x1D,
+                0x1E, base + 0x060, base + 0x130, base + 0x11C, base + 0x120,
+                base + 0x260, base + 0x264, base + 0x268
+            ]
+        elif hwcode in [0x699, 0x766]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x4C,base+0x50,0x8000000,base+0x6A4,
+                      0xA,0x8000008, base+0x140, base+0x144, base+0x148,
+                      base+0x14C, base+0x7A0, base+0x7A4, base+0x7A8, base+0x7AC,
+                      0x8000000, base+0x7B0, base+0x7B4,base+0x7B8,base+0x7BC,
+                      base+0x7C0, base+0x7C4, base+0x7C8, base+0x7CC, 0x1D,
+                      0x1E, base+0x60, base+0x130, base+0x100, base+0x120,
+                      0x8000000, 0x8000000, 0x8000000, base+0x6A8, base+0x6AC,
+                      base+0x5BC, base+0x5A8, base+0x580]
+        elif hwcode in [0x788]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x4C,base+0x50,0x8000000,base+0x6A4,
+                      0xA,0x8000008, base+0x140, base+0x144, base+0x148,
+                      base+0x14C, base+0x7A0, base+0x7A4, base+0x7A8, base+0x7AC,
+                      0x8000000, base+0x7B0, base+0x7B4,base+0x7B8,base+0x7BC,
+                      base+0x7C0, base+0x7C4, base+0x7C8, base+0x7CC, 0x1D,
+                      0x1E, base+0x60, base+0x130, base+0x11C, base+0x120,
+                      base+0x260, base+0x264, base+0x268, base+0x6A8, base+0x6AC,
+                      base+0x5BC, base+0x580, base+0x928, base+0x810, base+0x430,
+                      base+0x40c, 0x20200, base+0x430, base+0x40c, 0x30301,
+                      base+0x430, base+0x40C, 0x40402, base+0x430, base+0x40C,
+                      0x50503, base+0x430, base+0x40C, 0x60604, base+0x70]
+        elif hwcode in [0x717]:
+            self.efuses = [base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                    base + 0x48, base + 0x4C, base + 0x50, 0x8000000, base + 0x6A4,
+                    0xA, 0x8000008, base + 0x140, base + 0x144, base + 0x148,
+                    base + 0x14C, base + 0x7A0, base + 0x7A4, base + 0x7A8, base + 0x7AC,
+                    0x8000000, base + 0x7B0, base + 0x7B4, base + 0x7B8, base + 0x7BC,
+                    base + 0x7C0, base + 0x7C4, base + 0x7C8, base + 0x7CC, 0x1D,
+                    0x1E, base + 0x60, base + 0x130, base + 0x100, base + 0x120,
+                    base + 0x598, 0x8000000, 0x8000000, base + 0x6A8, base + 0x6AC,
+                    base + 0x5BC, base + 0x5A8, base + 0x580]
+        elif hwcode in [0x690]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x4C,base+0x50,0x8000000,base+0x6A4,
+                      0xA,0x8000008, base+0x140, base+0x144, base+0x148,
+                      base+0x14C, base+0x7A0, base+0x7A4, base+0x7A8, base+0x7AC,
+                      0x8000000, base+0x7B0, base+0x7B4,base+0x7B8,base+0x7BC,
+                      base+0x7C0, base+0x7C4, base+0x7C8, base+0x7CC, 0x1D,
+                      0x1E, base+0x60, base+0x130, base+0x100, base+0x120,
+                      base+0x260, base+0x264, base+0x268, base+0x6A8, base+0x6AC]
+        elif hwcode in [0x707, 0x725, 0x813]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x4C,base+0x50,base+0x6A0,base+0x6A4,
+                      0xA,0x8000008, base+0x140, base+0x144, base+0x148,
+                      base+0x14C, base+0x7A0, base+0x7A4, base+0x7A8, base+0x7AC,
+                      0x8000000, base+0x7B0, base+0x7B4,base+0x7B8,base+0x7BC,
+                      base+0x7C0, base+0x7C4, base+0x7C8, base+0x7CC, 0x1D,
+                      0x1E, base+0x60, base+0x130, base+0x11C, base+0x120,
+                      base+0x260, base+0x264, base+0x268, base+0x6A8, base+0x6AC,
+                      base+0x5b4, base+0x5b8, base+0x5bc, base+0x5c0, base+0x5c4,
+                      base+0x5c8, base+0x5cc, base+0x5d0, base+0x5d4, base+0x5d8,
+                      base+0x5dc, base+0x5e0, base+0x580]
+        elif hwcode in [0x279]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x60,base+0x180,base+0x184,base+0x188,
+                      base+0x120, base+0x130, base+0x140, base+0x144, base+0x18C,
+                      base+0x190, base+0x194, base+0x71C, base+0x720, base+0x710,
+                      0x8000000, base+0x4C, base+0x50,base+0x54,base+0x58,
+                      base+0x198, base+0x19c, base+0x1A0, base+0x1A4, 0x1A8,
+                      base+0x714, base+0x718, base+0x724, base+0x8D8, 0x8000008]
+        elif hwcode in [0x562]:
+            self.efuses = [base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                        base + 0x48, base + 0x4C, base + 0x260, base+0x264, base + 0x268,
+                        0xA, base+0x130, base + 0x140, base + 0x144, base + 0x148,
+                        base + 0x14C, base + 0x7A8, base + 0x7AC, base + 0x7A0, base + 0x11C,
+                        0x8000000, base + 0x4C, base + 0x50, base + 0x7A4, base + 0x7B0,
+                        base + 0x120, base + 0x7B4, base + 0x7B8, base + 0x7BC, 0x1D,
+                        0x1E, base + 0x288, base + 0x7CC, base + 0x770, 0x8000008,
+                        base + 0x7C0, base + 0x7C4, base + 0x7C8, base + 0x94C]
+        elif hwcode in [0x989, 0x996, 0x816]:
+            self.efuses=[base+0x20,base+0x30,base+0x38,base+0x40,base+0x44,
+                      base+0x48,base+0x4C,base+0x50,base+0x6A0,base+0x6A4,
+                      0xA,0x8000008, base+0x140, base+0x144, base+0x148,
+                      base+0x14C, base+0x7A0, base+0x7A4, base+0x7A8, base+0x7AC,
+                      0x8000000, base+0x7B0, base+0x7B4,base+0x7B8,base+0x7BC,
+                      base+0x7C0, base+0x7C4, base+0x7C8, base+0x7CC, 0x1D,
+                      0x1E, base+0x60, base+0x130, base+0x11C, base+0x120,
+                      base+0x260, base+0x264, base+0x268, base+0x6A8, base+0x6AC,
+                      base+0x5b4, base+0x5b8, base+0x5bc, base+0x5c0, base+0x5c4,
+                      base+0x5c8, base+0x5cc, base+0x5d0, base+0x5d4, base+0x5d8,
+                      base+0x5dc, base+0x5e0, base+0x580, base+0x5E4, base+0x5e8]
+        elif hwcode in [0x8163]:
+            self.efuses = [base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                        base + 0x48, base + 0x60, base + 0x100, base + 0x104, base + 0x108,
+                        base+ 0x120, base+0x130, base + 0x140, base + 0x144, base + 0x170,
+                        base + 0x174, base + 0x178, base + 0x17C, base + 0x180, base + 0x184,
+                        0x8000000, base + 0x188, base + 0x1B0, base + 0x1B4, base + 0x1B8,
+                        base + 0x1BC, base + 0x1C0, base + 0x1C4, base + 0x1C8, base + 0x1CC,
+                        base + 0x4C, base + 0x50, base + 0x54, base + 0x90, base + 0x94,
+                        base + 0x98, base + 0x9C, base + 0xA0, base + 0xA4, base + 0xA8,
+                        base + 0xAC]
+        elif hwcode in [0x8167]:
+            self.efuses = [base+0x20, base+0x30, base+0x38, base+0x40, base+0x44,
+                        0x8000000, base+0x60, base+0x260, base+0x264, base+0x268,
+                        base+0x120, base+0x130, base+0x140, base+0x144, base+0x26C,
+                        base+0x270, base+0x274, base+0x278, base+0x27C, base+0x280,
+                        0x8000000, base+0x284, base+0x850, base+0x854, base+0x858,
+                        base+0x85C, base+0x860, base+0x864, base+0x868, base+0x86C,
+                        base+0x320, 0x8000008, base+0x560, base+0x90, base+0x94,
+                        base+0x98, base+0x9C, base+0xA0, base+0xA4, base+0xA8,
+                        base+0xAC, base+0x250, base+0x254, base+0x258, base+0x25C,
+                        base+0x300, base+0x304, base+0x308, base+0x30C, 0x8000000,
+                        base+0x310, base+0x540, base+0x544, base+0x548, base+0x54C,
+                        base+0x550, base+0x558, base+0x55C, base+0x050, 0x8000000,
+                        base+0x180, base+0x184, base+0x188, base+0x18C, base+0x190,
+                        base+0x194, base+0x198, base+0x580, base+0x584, base+0x588,
+                        base+0x58C, base+0x590, base+0x594, base+0x598, base+0x068,
+                        base+0x028, base+0x070, base+0x074, base+0x078, base+0x07C
+                        ]
+        elif hwcode in [0x8176]:
+            self.efuses = [base + 0x20, base + 0x30, base + 0x38, base + 0x40, base + 0x44,
+                        base + 0x274, base + 0x60, base + 0x100, base + 0x104, base + 0x108,
+                        base + 0x120, base + 0x130, base + 0x140, base + 0x144, base + 0x170,
+                        base + 0x174, base + 0x178, base + 0x17C, base + 0x180, base + 0x184,
+                        0x8000000, base + 0x188, base + 0x504, base + 0x514, base + 0x700,
+                        base + 0x704, base + 0x708, base + 0x70C, base + 0x528, base + 0x52C,
+                        base + 0x530, base + 0x534, base + 0x538, base + 0x540, base + 0x544,
+                        base + 0x548, base + 0x4C4, base + 0x4C8, base + 0x4B0, base + 0x4B8,
+                        base + 0x90, base + 0x94, base + 0x98, base + 0x9C, base + 0xA0,
+                        base + 0xA4, base + 0xA8, base + 0xAC]
 
 class chipconfig:
     def __init__(self, var1=None, watchdog=None, uart=None, brom_payload_addr=None,
@@ -13,7 +208,8 @@ class chipconfig:
                  gcpu_base=None, ap_dma_mem=None, name="", description="", dacode=None,
                  meid_addr=None, socid_addr=None, blacklist=(), blacklist_count=None,
                  send_ptr=None, ctrl_buffer=(), cmd_handler=None, brom_register_access=None,
-                 damode=damodes.DEFAULT, loader=None, prov_addr=None):
+                 damode=damodes.DEFAULT, loader=None, prov_addr=None, misc_lock=None,
+                 efuse_addr=None):
         self.var1 = var1
         self.watchdog = watchdog
         self.uart = uart
@@ -40,6 +236,8 @@ class chipconfig:
         self.dacode = dacode
         self.damode = damode
         self.loader = loader
+        self.misc_lock = misc_lock
+        self.efuse_addr = efuse_addr
 
     # Credits to cyrozap and Chaosmaster for some values
     """
@@ -251,9 +449,10 @@ hwconfig = {
         # no dxcc
         cqdma_base=0x1020ac00,
         ap_dma_mem=0x11000000 + 0x1A0,  # AP_P_DMA_I2C_RX_MEM_ADDR
+        efuse_addr=0x10009000,
         damode=damodes.XFLASH,
         dacode=0x6570,
-        name="MT6570"),
+        name="MT6570/MT8321"),
     0x6571: chipconfig(  # var1
         watchdog=0x10007400,
         # uart
@@ -265,6 +464,7 @@ hwconfig = {
         # cqdma_base
         # ap_dma_mem
         # blacklist
+        misc_lock=0x1000141C,
         damode=damodes.DEFAULT,  #
         dacode=0x6571,
         name="MT6571"),
@@ -282,11 +482,13 @@ hwconfig = {
         ap_dma_mem=0x11000000 + 0x19C,  # AP_P_DMA_I2C_1_MEM_ADDR
         blacklist=[(0x11141F0C, 0), (0x11144BC4, 0)],
         blacklist_count=0x00000008,
-        send_ptr=(0x11141f4c, 0x40ba68), ####
+        send_ptr=(0x11141f4c, 0x40ba68),  ####
         ctrl_buffer=0x11142BE0,
         cmd_handler=0x40C5AF,
         brom_register_access=(0x40bd48, 0x40befc),
         meid_addr=0x11142C34,
+        misc_lock=0x1000141C,
+        efuse_addr=0x10009000,
         damode=damodes.DEFAULT,  #
         dacode=0x6572,
         name="MT6572",
@@ -306,21 +508,7 @@ hwconfig = {
         dacode=0x6573,
         name="MT6573/MT6260"),
     0x6575: chipconfig(  # var1
-        watchdog=0xC0000000,  #
-        # uart
-        da_payload_addr=0xc2001000,
-        pl_payload_addr=0xc2058000,
-        # gcpu_base
-        sej_base=0xC101A000,
-        # no dxcc
-        # cqdma_base
-        ap_dma_mem=0xC100119C,
-        # blacklist
-        damode=damodes.DEFAULT,  #
-        dacode=0x6575,
-        name="MT6575/77"),
-    0x6577: chipconfig(  # var1
-        watchdog=0xC0000000,  # fixme
+        watchdog=0xC0000000,
         uart=0xC1009000,
         da_payload_addr=0xc2001000,
         pl_payload_addr=0xc2058000,
@@ -330,7 +518,21 @@ hwconfig = {
         # cqdma_base
         ap_dma_mem=0xC100119C,
         # blacklist
-        damode=damodes.DEFAULT,  #
+        damode=damodes.DEFAULT,
+        dacode=0x6572,
+        name="MT6575/77"),
+    0x6577: chipconfig(  # var1
+        watchdog=0xC0000000,
+        uart=0xC1009000,
+        da_payload_addr=0xc2001000,
+        pl_payload_addr=0xc2058000,
+        # gcpu_base
+        sej_base=0xC101A000,
+        # no dxcc
+        # cqdma_base
+        ap_dma_mem=0xC100119C,
+        # blacklist
+        damode=damodes.DEFAULT,
         dacode=0x6577,
         name="MT6577"),
     0x6580: chipconfig(var1=0xAC,
@@ -350,6 +552,8 @@ hwconfig = {
                        ctrl_buffer=0x00103060,
                        cmd_handler=0x0000C113,
                        brom_register_access=(0xb8e0, 0xba94),
+                       efuse_addr=0x10206000,
+                       misc_lock=0x10001838,
                        meid_addr=0x1030B4,
                        damode=damodes.DEFAULT,
                        dacode=0x6580,
@@ -373,10 +577,12 @@ hwconfig = {
         ctrl_buffer=0x00103078,
         cmd_handler=0x0000B2E7,
         brom_register_access=(0xa8d0, 0xaa84),
+        efuse_addr=0x10206000,
         meid_addr=0x1030CC,
+        misc_lock=0x10002050,
         damode=damodes.DEFAULT,  #
         dacode=0x6582,
-        name="MT6582/MT6574",
+        name="MT6582/MT6574/MT8382",
         loader="mt6582_payload.bin"),
     0x6583: chipconfig(  # var1
         watchdog=0x10000000,  # fixme
@@ -390,6 +596,7 @@ hwconfig = {
         # blacklist
         cqdma_base=0x10212000,  # This chip might not support cqdma
         ap_dma_mem=0x11000000 + 0x320,  # AP_DMA_I2C_0_RX_MEM_ADDR
+        misc_lock=0x10002050,
         damode=damodes.DEFAULT,
         dacode=0x6589,
         name="MT6583/6589"),
@@ -412,9 +619,11 @@ hwconfig = {
         cmd_handler=0x0000B09F,
         brom_register_access=(0xa838, 0xa9ec),
         meid_addr=0x1030A8,
+        misc_lock=0x10002050,
+        efuse_addr=0x10206000,
         dacode=0x6592,
         damode=damodes.DEFAULT,  #
-        name="MT6592",
+        name="MT6592/MT8392",
         loader="mt6592_payload.bin"),
     0x6595: chipconfig(var1=0xA,
                        watchdog=0x10007000,
@@ -433,6 +642,7 @@ hwconfig = {
                        cmd_handler=0x0000BD53,
                        brom_register_access=(0xb4ec, 0xb6a0),
                        meid_addr=0x1030A4,
+                       efuse_addr=0x10206000,
                        dacode=0x6595,
                        damode=damodes.DEFAULT,  #
                        name="MT6595",
@@ -457,9 +667,11 @@ hwconfig = {
         cmd_handler=0x0000A17F,
         brom_register_access=(0x98cc, 0x9a94),
         meid_addr=0x1030B0,
+        misc_lock=0x10001838,
+        efuse_addr=0x11c50000,
         damode=damodes.DEFAULT,  #
         dacode=0x6735,
-        name="MT6735/T",
+        name="MT6735/T,MT8735A",
         loader="mt6735_payload.bin"),
     0x335: chipconfig(
         var1=0x28,  # confirmed
@@ -480,9 +692,10 @@ hwconfig = {
         cmd_handler=0x0000A18F,
         brom_register_access=(0x98dc, 0x9aa4),
         meid_addr=0x1030B0,
+        efuse_addr=0x10206000,
         damode=damodes.DEFAULT,  #
         dacode=0x6735,
-        name="MT6737M",
+        name="MT6737M/MT6735G",
         loader="mt6737_payload.bin"),
     # MT6738
     0x699: chipconfig(
@@ -506,9 +719,11 @@ hwconfig = {
         meid_addr=0x102AF8,
         socid_addr=0x102b08,
         prov_addr=0x10720C,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11c00000,
         damode=damodes.XFLASH,
         dacode=0x6739,
-        name="MT6739/MT6731",
+        name="MT6739/MT6731/MT8765",
         loader="mt6739_payload.bin"),
     0x601: chipconfig(
         var1=0xA,
@@ -522,6 +737,8 @@ hwconfig = {
         cqdma_base=0x10212C00,
         ap_dma_mem=0x11000000 + 0x1A0,  # AP_DMA_I2C_1_RX_MEM_ADDR
         # blacklist
+        efuse_addr=0x10206000,
+        misc_lock=0x10001838,
         damode=damodes.XFLASH,
         dacode=0x6755,
         name="MT6750"),
@@ -537,6 +754,7 @@ hwconfig = {
         cqdma_base=0x10212C00,
         ap_dma_mem=0x11000000 + 0x1A0,  # AP_DMA_I2C_0_RX_MEM_ADDR
         # blacklist
+        efuse_addr=0x10206000,
         damode=damodes.DEFAULT,  #
         dacode=0x6752,
         name="MT6752"),
@@ -561,6 +779,7 @@ hwconfig = {
         meid_addr=0x1030B0,
         damode=damodes.DEFAULT,  #
         dacode=0x6735,
+        misc_lock=0x10001838,
         name="MT6753",
         loader="mt6753_payload.bin"),
     0x326: chipconfig(
@@ -582,6 +801,7 @@ hwconfig = {
         cmd_handler=0x0000A5FF,
         brom_register_access=(0x9d4c, 0x9f14),
         meid_addr=0x1030AC,
+        efuse_addr=0x10206000,
         damode=damodes.XFLASH,
         dacode=0x6755,
         name="MT6755/MT6750/M/T/S",
@@ -606,6 +826,8 @@ hwconfig = {
         cmd_handler=0x0000A8FB,
         brom_register_access=(0xa030, 0xa0e8),
         meid_addr=0x1030B4,
+        misc_lock=0x10001838,
+        efuse_addr=0x10206000,
         damode=damodes.XFLASH,
         dacode=0x6757,
         name="MT6757/MT6757D",
@@ -613,24 +835,25 @@ hwconfig = {
         loader="mt6757_payload.bin"),
     0x688: chipconfig(
         var1=0xA,
-        watchdog=0x10211000, #
+        watchdog=0x10211000,  #
         uart=0x11020000,
-        brom_payload_addr=0x100A00, #
-        da_payload_addr=0x201000, #
+        brom_payload_addr=0x100A00,  #
+        da_payload_addr=0x201000,  #
         pl_payload_addr=0x40200000,  #
-        gcpu_base=0x10050000, #
+        gcpu_base=0x10050000,  #
         sej_base=0x10080000,  # hacc
-        dxcc_base=0x11240000, #
-        cqdma_base=0x10200000, #
-        ap_dma_mem=0x11000000 + 0x1A0, #
-        blacklist=[(0x102830,0),(0x106A60,0)],
+        dxcc_base=0x11240000,  #
+        cqdma_base=0x10200000,  #
+        ap_dma_mem=0x11000000 + 0x1A0,  #
+        blacklist=[(0x102830, 0), (0x106A60, 0)],
         blacklist_count=0xA,
-        send_ptr=(0x102874,0xd860),
+        send_ptr=(0x102874, 0xd860),
         ctrl_buffer=0x102B28,
-        cmd_handler=0xE58D, 
-        brom_register_access=(0xdc74,0xdd2c),
+        cmd_handler=0xE58D,
+        brom_register_access=(0xdc74, 0xdd2c),
         meid_addr=0x102bf8,
         socid_addr=0x102c08,
+        efuse_addr=0x10450000,
         damode=damodes.XFLASH,
         dacode=0x6758,
         name="MT6758",
@@ -683,6 +906,8 @@ hwconfig = {
         meid_addr=0x102AF8,
         socid_addr=0x102b08,
         prov_addr=0x1054F4,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11c50000,
         damode=damodes.XFLASH,
         dacode=0x6761,
         name="MT6761/MT6762/MT3369/MT8766B",
@@ -709,6 +934,8 @@ hwconfig = {
         meid_addr=0x102B78,
         socid_addr=0x102b88,
         prov_addr=0x106804,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11f10000,
         damode=damodes.XFLASH,
         dacode=0x6763,
         name="MT6763",
@@ -735,9 +962,11 @@ hwconfig = {
         meid_addr=0x102AF8,
         socid_addr=0x102b08,
         prov_addr=0x1054F4,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11c50000,
         damode=damodes.XFLASH,
         dacode=0x6765,
-        name="MT6765",
+        name="MT6765/MT8768t",
         description="Helio P35/G35",
         loader="mt6765_payload.bin"),
     0x707: chipconfig(
@@ -761,9 +990,11 @@ hwconfig = {
         meid_addr=0x102AF8,
         socid_addr=0x102b08,
         prov_addr=0x1054F4,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11ce0000,
         damode=damodes.XFLASH,
         dacode=0x6768,
-        name="MT6768",
+        name="MT6768/MT6769",
         description="Helio P65/G85 k68v1",
         loader="mt6768_payload.bin"),
     0x788: chipconfig(
@@ -775,7 +1006,7 @@ hwconfig = {
         pl_payload_addr=0x40200000,  #
         gcpu_base=0x10050000,
         sej_base=0x1000A000,  # hacc
-        #dxcc_base=0x10210000,  # dxcc_sec
+        dxcc_base=0x10210000,  # dxcc_sec
         cqdma_base=0x10212000,
         ap_dma_mem=0x11000000 + 0x158,  # AP_DMA_I2C_1_RX_MEM_ADDR
         blacklist=[(0x00102834, 0x0), (0x00106A60, 0x0)],
@@ -787,6 +1018,8 @@ hwconfig = {
         meid_addr=0x102B38,
         socid_addr=0x102B48,
         prov_addr=0x1065C0,
+        misc_lock=0x1001a100,
+        efuse_addr=0x11f10000,
         damode=damodes.XFLASH,
         dacode=0x6771,
         name="MT6771/MT8385/MT8183/MT8666",
@@ -823,13 +1056,15 @@ hwconfig = {
                       meid_addr=0x102B38,
                       socid_addr=0x102B48,
                       prov_addr=0x1065C0,
+                      misc_lock=0x1001a100,
+                      efuse_addr=0x11c10000,
                       damode=damodes.XFLASH,
                       dacode=0x6779,
                       name="MT6779",
                       description="Helio P90 k79v1",
                       loader="mt6779_payload.bin"),
     0x1066: chipconfig(
-        var1=0x73, #confirmed
+        var1=0x73,  # confirmed
         watchdog=0x10007000,
         uart=0x11002000,
         brom_payload_addr=0x100A00,
@@ -842,12 +1077,13 @@ hwconfig = {
         # ap_dma_mem=0x11000000 + 0x158,
         blacklist=[(0x10284C, 0x106B54)],
         blacklist_count=0x0000000A,
-        send_ptr=(0x102890,0xe5d8),
+        send_ptr=(0x102890, 0xe5d8),
         ctrl_buffer=0x00102AB4,
         cmd_handler=0x0000F3C1,
-        brom_register_access=(0xe9dc,0xea94),
+        brom_register_access=(0xe9dc, 0xea94),
         meid_addr=0x102B98,
         socid_addr=0x102BA8,
+        efuse_addr=0x11cb0000,
         damode=damodes.XFLASH,
         dacode=0x6781,
         name="MT6781",
@@ -874,6 +1110,8 @@ hwconfig = {
                       meid_addr=0x102B38,
                       socid_addr=0x102B48,
                       prov_addr=0x1065C0,
+                      misc_lock=0x1001a100,
+                      efuse_addr=0x11c10000,
                       damode=damodes.XFLASH,
                       dacode=0x6785,
                       name="MT6785",
@@ -895,9 +1133,10 @@ hwconfig = {
         blacklist_count=0x00000008,
         send_ptr=(0x1027a4, 0x978c),
         ctrl_buffer=0x0010304C,
-        cmd_handler=0x0000A313, #
+        cmd_handler=0x0000A313,  #
         brom_register_access=(0x9a60, 0x9c28),
         meid_addr=0x1030A0,
+        efuse_addr=0x10206000,
         damode=damodes.DEFAULT,  #
         dacode=0x6795,
         name="MT6795",
@@ -922,6 +1161,8 @@ hwconfig = {
         cmd_handler=0x0000AA3F,
         brom_register_access=(0xa18c, 0xa354),
         meid_addr=0x1030AC,
+        misc_lock=0x10002050,
+        efuse_addr=0x10206000,
         damode=damodes.XFLASH,
         dacode=0x6797,
         name="MT6797/MT6767",
@@ -947,6 +1188,7 @@ hwconfig = {
         brom_register_access=(0xf9c0, 0xfa78),
         meid_addr=0x1033B8,
         socid_addr=0x1033C8,
+        efuse_addr=0x11F10000,
         damode=damodes.XFLASH,
         dacode=0x6799,
         name="MT6799",
@@ -973,6 +1215,7 @@ hwconfig = {
         meid_addr=0x102b98,
         socid_addr=0x102ba8,
         prov_addr=0x1066B4,
+        efuse_addr=0x11c10000,
         damode=damodes.XFLASH,
         dacode=0x6833,
         name="MT6833",
@@ -998,6 +1241,8 @@ hwconfig = {
                       meid_addr=0x102b78,
                       socid_addr=0x102b88,
                       prov_addr=0x1066C0,
+                      misc_lock=0x1001A100,
+                      efuse_addr=0x11c10000,
                       damode=damodes.XFLASH,
                       dacode=0x6853,
                       name="MT6853",
@@ -1024,6 +1269,8 @@ hwconfig = {
         meid_addr=0x102B78,
         socid_addr=0x102B88,
         prov_addr=0x1066C0,
+        misc_lock=0x1001A100,
+        efuse_addr=0x11c10000,
         damode=damodes.XFLASH,
         dacode=0x6873,
         name="MT6873",
@@ -1043,13 +1290,14 @@ hwconfig = {
         ap_dma_mem=0x10217a80 + 0x1A0,
         blacklist=[(0x102848, 0x0), (0x00106B60, 0x0)],
         blacklist_count=0xA,
-        send_ptr=(0x102888,0xe8d0),
+        send_ptr=(0x102888, 0xe8d0),
         ctrl_buffer=0x00102A9C,
         cmd_handler=0x0000F69D,
-        brom_register_access=(0xecd8,0xed90),
+        brom_register_access=(0xecd8, 0xed90),
         meid_addr=0x102b98,
         socid_addr=0x102ba8,
         prov_addr=0x1066C0,
+        efuse_addr=0x11f10000,
         damode=damodes.XFLASH,
         dacode=0x6877,  # todo
         name="MT6877",
@@ -1077,6 +1325,8 @@ hwconfig = {
         meid_addr=0x102B78,
         socid_addr=0x102B88,
         prov_addr=0x1066C0,
+        misc_lock=0x1001A100,
+        efuse_addr=0x11c10000,
         damode=damodes.XFLASH,
         dacode=0x6885,
         name="MT6885/MT6883/MT6889/MT6880/MT6890",
@@ -1103,25 +1353,40 @@ hwconfig = {
         meid_addr=0x102B98,
         socid_addr=0x102BA8,
         prov_addr=0x1066C0,
+        efuse_addr=0x11c10000,
         damode=damodes.XFLASH,
         dacode=0x6893,
         name="MT6893",
         description="Dimensity 1200",
         loader="mt6893_payload.bin"),
-    # Dimensity 1100 - MT6891 Realme Q3 Pro
-    0x8110: chipconfig(  # var1
-        # watchdog
-        # uart
-        # brom_payload_addr
-        # da_payload_addr
-        # gcpu_base
-        # sej_base
-        # cqdma_base
-        # ap_dma_mem
-        # blacklist
+    0x1172: chipconfig(
+        var1=0xA,
+        watchdog=0x1c007000,
+        uart=0x11001000,
+        brom_payload_addr=0x100A00,
+        da_payload_addr=0x201000,
+        pl_payload_addr=0x40200000,
+        gcpu_base=0x10050000,
+        dxcc_base=0x10210000,
+        sej_base=0x1000a000,
+        cqdma_base=0x10212000,
+        ap_dma_mem=0x11300800 + 0x1a0,
+        #blacklist=[(0x102848, 0x0), (0x00106B60, 0x0)],
+        #blacklist_count=0x0000000A,
+        #send_ptr=(0x102888, 0xE79C),
+        #ctrl_buffer=0x00102A9C,
+        #cmd_handler=0x0000F569,
+        #brom_register_access=(0xeba4, 0xec5c),
+        #meid_addr=0x102B98,
+        #socid_addr=0x102BA8,
+        #prov_addr=0x1066C0,
         damode=damodes.XFLASH,
-        dacode=0x8110,
-        name="MT8110"),
+        dacode=0x6895,
+        name="MT6895",
+        description="Dimensity 8100"
+        #loader="mt6893_payload.bin"
+        ),
+    # Dimensity 1100 - MT6891 Realme Q3 Pro
     0x8127: chipconfig(
         var1=0xA,
         watchdog=0x10007000,
@@ -1140,6 +1405,7 @@ hwconfig = {
         cmd_handler=0x0000BDF3,
         brom_register_access=(0xb58c, 0xb740),
         meid_addr=0x1031CC,
+        misc_lock=0x10002050,
         damode=damodes.DEFAULT,  #
         dacode=0x8127,
         name="MT8127/MT3367",
@@ -1187,6 +1453,8 @@ hwconfig = {
         cmd_handler=0x0000CCB3,
         brom_register_access=(0xc400, 0xc5c8),
         meid_addr=0x1031C0,
+        misc_lock=0x10002050,
+        efuse_addr=0x10206000,
         damode=damodes.DEFAULT,  #
         dacode=0x8163,
         name="MT8163",
@@ -1210,35 +1478,37 @@ hwconfig = {
                        brom_register_access=(0xd6f2, 0xd7ac),
                        meid_addr=0x103478,
                        socid_addr=0x103488,
+                       efuse_addr=0x10009000,
                        damode=damodes.XFLASH,
                        dacode=0x8167,
                        name="MT8167/MT8516/MT8362",
                        # description
                        loader="mt8167_payload.bin"),
-    0x8168: chipconfig(  # var1
+    0x8168: chipconfig(
+        var1=0xA,
         watchdog=0x10007000,
         uart=0x11002000,
         brom_payload_addr=0x100A00,
         da_payload_addr=0x201000,
-        # pl_payload_addr=0x40001000
-        # gcpu_base
-        # sej_base=0x1000A000,
+        pl_payload_addr=0x40001000,
+        gcpu_base=0x10241000,
+        sej_base=0x1000A000,
         # cqdma_base
         ap_dma_mem=0x11000280 + 0x1A0,
-        # blacklist
-        # blacklist_count
-        # send_ptr
-        # ctrl_buffer
-        # cmd_handler
-        # brom_register_access
-        # meid_addr
-        # socid_addr
+        blacklist=[(0x10303C, 0x0), (0x10A540, 0x0)],
+        blacklist_count=0xA,
+        send_ptr=(0x103080, 0x13834),
+        ctrl_buffer=0x0010637C,
+        cmd_handler=0x1436F,
+        brom_register_access=(0x13c18, 0x13d78),
+        meid_addr=0x106438,
+        socid_addr=0x106448,
+        efuse_addr=0x10009000,
         damode=damodes.XFLASH,
         dacode=0x8168,
-        name="MT8168"
+        name="MT8168/MT6357",
         # description
-        # loader
-    ),
+        loader="mt8168_payload.bin"),
     0x8172: chipconfig(
         var1=0xA,
         watchdog=0x10007000,
@@ -1246,7 +1516,7 @@ hwconfig = {
         brom_payload_addr=0x120A00,
         da_payload_addr=0xC0000,
         pl_payload_addr=0x40001000,  #
-        # gcpu_base
+        gcpu_base=0x10210000,
         sej_base=0x1000a000,
         # no dxcc
         cqdma_base=0x10212c00,
@@ -1258,41 +1528,43 @@ hwconfig = {
         cmd_handler=0x0000AC6B,
         brom_register_access=(0xa3b8, 0xa580),
         meid_addr=0x1230B0,
+        misc_lock=0x1202050,
         damode=damodes.DEFAULT,  #
         dacode=0x8173,
         name="MT8173",
         # description
         loader="mt8173_payload.bin"),  # sloane, suez
     0x8176: chipconfig(
-        # var1
-        watchdog=0x10212c00,
+        var1=0xA,
+        watchdog=0x10007000,
         uart=0x11002000,
         brom_payload_addr=0x120A00,
         da_payload_addr=0xC0000,
         pl_payload_addr=0x40200000,
-        # gcpu_base
+        gcpu_base=0x10210000,
         sej_base=0x1000A000,
         # no dxcc
         cqdma_base=0x10212c00,
         ap_dma_mem=0x11000000 + 0x1A0,
-        # blacklist
-        # blacklist_count
-        # send_ptr
-        # ctrl_buffer
-        # cmd_handler
-        # brom_register_access
-        # meid_addr
+        blacklist=[(0x122774, 0x0), (0x00125904, 0x0)],
+        blacklist_count=0x00000008,
+        send_ptr=(0x1227b4, 0xa0e4),
+        ctrl_buffer=0x0012305C,
+        cmd_handler=0x0000AC6B,
+        brom_register_access=(0xa3b8, 0xa580),
+        meid_addr=0x1230B0,
+        misc_lock=0x1202050,
         # socid_addr
+        efuse_addr=0x10206000,
         dacode=0x8173,
         damode=damodes.DEFAULT,
         # description
-        name="MT8176"
-        # loader
-    ),
+        name="MT8176",
+        loader="mt8176_payload.bin"),
     0x930: chipconfig(
         # var1
-        # watchdog
-        # uart
+        watchdog=0x10007000,
+        uart=0x11001200,
         brom_payload_addr=0x100A00,
         da_payload_addr=0x201000,
         pl_payload_addr=0x40200000,
@@ -1308,40 +1580,45 @@ hwconfig = {
         # brom_register_access
         # meid_addr
         # socid_addr
+        efuse_addr=0x11c10000,
+        misc_lock=0x1001A100,
         dacode=0x8195,
         damode=damodes.XFLASH,
         # description
-        name="MT8195"
+        name="MT8195 Chromebook"
         # loader
     ),
-    0x8512: chipconfig(  # var1
-        # watchdog
-        # uart
-        # brom_payload_addr
+    0x8512: chipconfig(
+        var1=0xA,
+        watchdog=0x10007000,
+        uart=0x11002000,
+        brom_payload_addr=0x100A00,
         da_payload_addr=0x111000,
-        # gcpu_base
-        # sej_base
-        # cqdma_base
-        # ap_dma_mem
-        # blacklist
-        # blacklist_count
-        # send_ptr
-        # ctrl_buffer
-        # cmd_handler
-        # brom_register_access
-        # meid_addr
-        # socid_addr
+        pl_payload_addr=0x40200000,
+        gcpu_base=0x1020F000,
+        sej_base=0x1000A000,
+        cqdma_base=0x10214000,
+        ap_dma_mem=0x11000000 + 0x1A0,
+        blacklist=[(0x001041E4, 0x0), (0x0010AA84, 0x0)],
+        blacklist_count=0xA,
+        send_ptr=(0x104258, 0xcc44),
+        ctrl_buffer=0x00104570,
+        cmd_handler=0x0000D7AB,
+        brom_register_access=(0xd034, 0xd194),
+        meid_addr=0x104638,
+        socid_addr=0x104648,
+        efuse_addr=0x11c50000,
         dacode=0x8512,
         damode=damodes.XFLASH,
         # description
-        name="MT8512"
-        # loader
+        name="MT8512",
+        loader="mt8512_payload.bin"
     ),
     0x8518: chipconfig(  # var1
         # watchdog
         # uart
         # brom_payload_addr
-        da_payload_addr=0x201000,
+        # da_payload_addr
         # gcpu_base
         # sej_base
         # cqdma_base
@@ -1354,9 +1631,12 @@ hwconfig = {
         # brom_register_access
         # meid_addr
         # socid_addr
+        efuse_addr=0x10009000,
         dacode=0x8518,
         damode=damodes.XFLASH,
-        name="MT8518"),
+        name="MT8518 VoiceAssistant"
+        # loader
+    ),
     0x8590: chipconfig(
         var1=0xA,  # confirmed, router
         watchdog=0x10007000,
@@ -1398,6 +1678,7 @@ hwconfig = {
         cmd_handler=0x0000CAA7,
         brom_register_access=(0xc298, 0xc3f8),
         meid_addr=0x1032B8,
+        efuse_addr=0x10206000,
         damode=damodes.XFLASH,
         dacode=0x8695,
         name="MT8695",  # mantis
@@ -1421,6 +1702,7 @@ hwconfig = {
         # brom_register_access
         # meid_addr
         # socid_addr
+        efuse_addr=0x11c10000,
         damode=damodes.XFLASH,
         dacode=0x8696,
         # description
@@ -1428,163 +1710,3 @@ hwconfig = {
         # loader
     ),
 }
-
-
-class Mtk_Config(metaclass=LogBase):
-    def __init__(self, loglevel=logging.INFO):
-        self.pid = -1
-        self.vid = -1
-        self.var1 = 0xA
-        self.is_brom = False
-        self.skipwdt = False
-        self.interface = -1
-        self.readsocid = False
-        self.enforcecrash = False
-        self.debugmode = False
-        self.preloader = None
-        self.payloadfile = None
-        self.loader = None
-        self.ptype = "kamakiri2"
-        self.generatekeys = None
-        self.bmtflag = None
-        self.bmtblockcount = None
-        self.bmtpartsize = None
-        self.packetsizeread = 0x400
-        self.flashinfo = None
-        self.flashsize = 0
-        self.readsize = 0
-        self.sparesize = 16
-        self.plcap = None
-        self.blver = -2
-        self.da = None
-        self.gcpu = None
-        self.pagesize = 512
-        self.SECTOR_SIZE_IN_BYTES = 4096  # fixme
-        self.baudrate = 115200
-        self.flash = "emmc"
-        self.cpu = ""
-        self.hwcode = None
-        self.meid = None
-        self.target_config = None
-        self.chipconfig = chipconfig()
-        self.gpt_settings = None
-        if loglevel == logging.DEBUG:
-            logfilename = os.path.join("logs", "log.txt")
-            fh = logging.FileHandler(logfilename)
-            self.__logger.addHandler(fh)
-            self.__logger.setLevel(logging.DEBUG)
-        else:
-            self.__logger.setLevel(logging.INFO)
-
-    def default_values(self, hwcode):
-        if self.chipconfig.var1 is None:
-            self.chipconfig.var1 = 0xA
-        if self.chipconfig.watchdog is None:
-            self.chipconfig.watchdog = 0x10007000
-        if self.chipconfig.uart is None:
-            self.chipconfig.uart = 0x11002000
-        if self.chipconfig.brom_payload_addr is None:
-            self.chipconfig.brom_payload_addr = 0x100A00
-        if self.chipconfig.da_payload_addr is None:
-            self.chipconfig.da_payload_addr = 0x200000
-        if self.chipconfig.cqdma_base is None:
-            self.chipconfig.cqdma_base = None
-        if self.chipconfig.gcpu_base is None:
-            self.chipconfig.gcpu_base = None
-        if self.chipconfig.sej_base is None:
-            self.chipconfig.sej_base = None
-        if self.chipconfig.dacode is None:
-            self.chipconfig.dacode = hwcode
-        if self.chipconfig.ap_dma_mem is None:
-            self.chipconfig.ap_dma_mem = 0x11000000 + 0x1A0
-        if self.chipconfig.damode is None:
-            self.chipconfig.damode = damodes.DEFAULT
-        if self.chipconfig.dxcc_base is None:
-            self.chipconfig.dxcc_base = None
-        if self.chipconfig.meid_addr is None:
-            self.chipconfig.meid_addr = None
-        if self.chipconfig.socid_addr is None:
-            self.chipconfig.socid_addr = None
-        if self.chipconfig.prov_addr is None:
-            self.chipconfig.prov_addr = None
-
-    def init_hwcode(self, hwcode):
-        self.hwcode = hwcode
-        if hwcode in hwconfig:
-            self.chipconfig = hwconfig[hwcode]
-        else:
-            self.chipconfig = chipconfig()
-        self.default_values(hwcode)
-
-    def get_watchdog_addr(self):
-        wdt = self.chipconfig.watchdog
-        if wdt != 0:
-            if wdt == 0x10007000:
-                return [wdt, 0x22000064]
-            elif wdt == 0x10212000:
-                return [wdt, 0x22000000]
-            elif wdt == 0x10211000:
-                return [wdt, 0x22000064]
-            elif wdt == 0x10007400:
-                return [wdt, 0x22000000]
-            elif wdt == 0xC0000000:
-                return [wdt, 0x0]
-            elif wdt == 0x2200:
-                if self.hwcode == 0x6276 or self.hwcode == 0x8163:
-                    return [wdt, 0x610C0000]
-                elif self.hwcode == 0x6251 or self.hwcode == 0x6516:
-                    return [wdt, 0x80030000]
-                elif self.hwcode == 0x6255:
-                    return [wdt, 0x701E0000]
-                else:
-                    return [wdt, 0x70025000]
-            else:
-                return [wdt, 0x22000064]
-
-    def bmtsettings(self, hwcode):
-        bmtflag = 1
-        bmtblockcount = 0
-        bmtpartsize = 0
-        if hwcode in [0x6592, 0x6582, 0x8127, 0x6571]:
-            if self.flash == "emmc":
-                bmtflag = 1
-                bmtblockcount = 0xA8
-                bmtpartsize = 0x1500000
-        elif hwcode in [0x6570, 0x8167, 0x6580, 0x6735, 0x6753, 0x6755, 0x6752, 0x6595, 0x6795, 0x6767, 0x6797, 0x8163]:
-            bmtflag = 1
-            bmtpartsize = 0
-        elif hwcode in [0x6571]:
-            if self.flash == "nand":
-                bmtflag = 0
-                bmtblockcount = 0x38
-                bmtpartsize = 0xE00000
-            elif self.flash == "emmc":
-                bmtflag = 1
-                bmtblockcount = 0xA8
-                bmtpartsize = 0x1500000
-        elif hwcode in [0x6575]:
-            if self.flash == "nand":
-                bmtflag = 0
-                bmtblockcount = 0x50
-            elif self.flash == "emmc":
-                bmtflag = 1
-                bmtblockcount = 0xA8
-                bmtpartsize = 0x1500000
-        elif hwcode in [0x6572]:
-            if self.flash == "nand":
-                bmtflag = 0
-                bmtpartsize = 0xA00000
-                bmtblockcount = 0x50
-            elif self.flash == "emmc":
-                bmtflag = 0
-                bmtpartsize = 0xA8
-                bmtblockcount = 0x50
-        elif hwcode in [0x6577, 0x6583, 0x6589]:
-            if self.flash == "nand":
-                bmtflag = 0
-                bmtpartsize = 0xA00000
-                bmtblockcount = 0xA8
-        self.bmtflag = bmtflag
-        self.bmtblockcount = bmtblockcount
-        self.bmtpartsize = bmtpartsize
-        return bmtflag, bmtblockcount, bmtpartsize

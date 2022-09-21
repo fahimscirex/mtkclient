@@ -14,7 +14,6 @@ import copy
 import time
 import io
 import datetime as dt
-
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding='utf-8')
 
@@ -28,7 +27,88 @@ except ImportError:
     pass
 
 from struct import unpack, pack
+from io import BytesIO
 
+from io import BytesIO
+
+class mtktee:
+    magic = None
+    hdrlen = None
+    flag1 = None
+    flag2 = None
+    flag3 = None
+    flag4 = None
+    flag5 = None
+    datalen = None
+    datalen2 = None
+    keyseed = None
+    ivseed = None
+    data = None
+
+    def parse(self, data):
+        sh=structhelper_io(BytesIO(data))
+        self.magic = sh.qword()
+        self.hdrlen = sh.dword()
+        self.flag1 = sh.bytes()
+        self.flag2 = sh.bytes()
+        self.flag3 = sh.bytes()
+        self.flag4 = sh.bytes()
+        self.flag5 = sh.dword()
+        self.datalen = sh.dword()
+        self.datalen2 = sh.dword()
+        self.keyseed = bytearray(sh.bytes(16))
+        self.ivseed = bytearray(sh.bytes(16))
+        sh.seek(self.hdrlen)
+        self.data = bytearray(sh.bytes(self.datalen))
+
+class structhelper_io:
+    pos = 0
+
+    def __init__(self, data: BytesIO = None, direction='little'):
+        self.data = data
+        self.direction = direction
+
+    def setdata(self, data, offset=0):
+        self.pos = offset
+        self.data = data
+
+    def qword(self):
+        dat = int.from_bytes(self.data.read(8), self.direction)
+        return dat
+
+    def dword(self):
+        dat = int.from_bytes(self.data.read(4), self.direction)
+        return dat
+
+    def dwords(self, dwords=1):
+        dat = [int.from_bytes(self.data.read(4), self.direction) for _ in range(dwords)]
+        return dat
+
+    def short(self):
+        dat = int.from_bytes(self.data.read(2), self.direction)
+        return dat
+
+    def shorts(self, shorts):
+        dat = [int.from_bytes(self.data.read(2), self.direction) for _ in range(shorts)]
+        return dat
+
+    def bytes(self, rlen=1):
+        dat = self.data.read(rlen)
+        if dat == b'':
+            return dat
+        if rlen == 1:
+            return dat[0]
+        return dat
+
+    def string(self, rlen=1):
+        dat = self.data.read(rlen)
+        return dat
+
+    def getpos(self):
+        return self.data.tell()
+
+    def seek(self, pos):
+        self.data.seek(pos)
 
 def find_binary(data, strf, pos=0):
     t = strf.split(b".")
@@ -52,7 +132,7 @@ def find_binary(data, strf, pos=0):
                             break
                         rt += len(t[i])
                     if error == 0:
-                        return offset
+                        return offset + pos
             else:
                 return None
         else:
@@ -62,12 +142,16 @@ def find_binary(data, strf, pos=0):
 
 
 class progress:
-    def __init__(self, pagesize):
+    def __init__(self, pagesize, guiprogress=None):
         self.progtime = 0
         self.prog = 0
         self.progpos = 0
         self.start = time.time()
         self.pagesize = pagesize
+        if guiprogress is not None:
+            self.guiprogress = guiprogress.emit
+        else:
+            self.guiprogress = None
 
     def calcProcessTime(self, starttime, cur_iter, max_iter):
         telapsed = time.time() - starttime
@@ -76,17 +160,29 @@ class progress:
             finishtime = starttime + testimated
             finishtime = dt.datetime.fromtimestamp(finishtime).strftime("%H:%M:%S")  # in time
             lefttime = testimated - telapsed  # in seconds
-            return (int(telapsed), int(lefttime), finishtime)
+            return int(telapsed), int(lefttime), finishtime
         else:
             return 0, 0, ""
 
+
+    def clear(self):
+        self.prog = 0
+        self.start = time.time()
+        self.progtime = time.time()
+        self.progpos = 0
+
     def show_progress(self, prefix, pos, total, display=True):
-        prog = round(float(pos) / float(total) * float(100), 1)
-        if prog == 0:
-            self.prog = 0
+        if pos != 0.0:
+            prog = round(float(pos) / float(total) * float(100), 1)
+        else:
+            prog = 0.0
+        if prog == 0.0:
+            self.prog = 0.0
             self.start = time.time()
             self.progtime = time.time()
             self.progpos = pos
+            if self.guiprogress is not None:
+                self.guiprogress(pos // self.pagesize)
             print_progress(prog, 100, prefix='Done',
                            suffix=prefix + ' (Sector 0x%X of 0x%X) %0.2f MB/s' %
                                   (pos // self.pagesize,
@@ -94,6 +190,8 @@ class progress:
                                    0), bar_length=50)
 
         if prog > self.prog:
+            if self.guiprogress is not None:
+                self.guiprogress(pos // self.pagesize)
             if display:
                 t0 = time.time()
                 tdiff = t0 - self.progtime
@@ -364,11 +462,17 @@ def revdword(value):
     return unpack(">I", pack("<I", value))[0]
 
 
-def logsetup(self, logger, loglevel):
-    self.info = logger.info
-    self.debug = logger.debug
-    self.error = logger.error
-    self.warning = logger.warning
+def logsetup(self, logger, loglevel, signal=None):
+    if not signal:
+        self.info = logger.info
+        self.debug = logger.debug
+        self.error = logger.error
+        self.warning = logger.warning
+    else:
+        self.info = signal.emit
+        self.debug = signal.emit
+        self.error = signal.emit
+        self.warning = signal.emit
     if loglevel == logging.DEBUG:
         logfilename = os.path.join("logs", "log.txt")
         fh = logging.FileHandler(logfilename, encoding='utf-8')

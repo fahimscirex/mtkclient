@@ -3,5 +3,7 @@ pyusb
 pycryptodome
 colorama
 usb
-PyQT5
+shiboken6
+pyside6
 mock
+pyserial
