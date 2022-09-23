@@ -1,6 +1,4 @@
-# MTKClient
-![Logo](mtkclient/gui/images/logo_256.png)
-
+# mtkclient
 Just some mtk tool for exploitation, reading/writing flash and doing crazy stuff. 
 For windows, you need to install the stock mtk port and the usbdk driver (see instructions below).
 For linux, a patched kernel is only needed when using old kamakiri (see Setup folder) (except for read/write flash).
@@ -13,28 +11,25 @@ release the buttons.
 - kamakiri [xyzz]
 - linecode exploit [chimera]
 - Chaosmaster
-- Geert-Jan Kreileman (GUI, design & fixes)
+- cygnusx (GUI)
 - All contributors
 
 ## Installation
 
 ### Use Re LiveDVD (everything ready to go, based on Ubuntu):
+[Download Re Live DVD V3](https://drive.google.com/file/d/1OoGWFSZTqWqwfU35W6UAUwc20CJrK95t/view?usp=sharing)
 User: user, Password:user (based on Ubuntu 22.04 LTS)
-
-[Live DVD V4](https://www.androidfilehost.com/?fid=15664248565197184488)
-
-[Live DVD V4 Mirror](https://drive.google.com/file/d/10OEw1d-Ul_96MuT3WxQ3iAHoPC4NhM_X/view?usp=sharing)
-
 
 
 ## Install
 
-### Linux  / Mac OS - (Ubuntu recommended, no patched kernel needed except for kamakiri)
+### Linux / Mac OS - (Ubuntu recommended, no patched kernel needed except for kamakiri)
 
 #### Install python >=3.8, git and other deps
 
 ```
 sudo apt install python3 git libusb-1.0-0 python3-pip
+
 ```
 
 #### Grab files 
@@ -53,9 +48,7 @@ sudo usermod -a -G dialout $USER
 sudo cp Setup/Linux/*.rules /etc/udev/rules.d
 sudo udevadm control -R
 ```
-Make sure to reboot after adding the user to dialout/plugdev. If the device
-has a vendor interface 0xFF (like LG), make sure to add "blacklist qcaux" to
-the "/etc/modprobe.d/blacklist.conf".
+Make sure to reboot after adding the user to dialout/plugdev.
 
 ---------------------------------------------------------------------------------------------------------------
 
@@ -123,18 +116,6 @@ sudo reboot
 
 ## Usage
 
-### Using MTKTools via the graphical user interface:
-For the 'basics' you can use the GUI interface. This supports dumping partitions or the full flash for now. Run the following command:
-```
-python mtk_gui
-```
-
-### Run multiple commands
-```bash
-python mtk script run.example
-```
-See the file "run.example" on how to structure the script file
-
 ### Root the phone (Tested with android 9 - 12)
 
 1. Dump boot and vbmeta
@@ -193,13 +174,6 @@ Example:
 python mtk payload --metamode FASTBOOT
 ```
 
-### Read efuses
-
-Example:
-
-```
-python mtk da efuse
-```
 
 ### Unlock bootloader
 
