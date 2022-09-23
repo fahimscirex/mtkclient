@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="1cfa39c9-a897-4bd7-b5bd-f7f68d9e467f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.github/workflows/python-app.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/mtkclient#installation.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtk_gui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtk_standalone.spec" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/Connection/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/Connection/devicehandler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/Connection/seriallib.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/Connection/usbscsi.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_class.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/MTK_AllInOne_DA.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/MTK_AllInOne_DA_5.2152.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/Preloader/preloader_a04br3.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/Preloader/preloader_a05ba.img" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/Preloader/preloader_a05bd.img" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/Preloader/preloader_hs03s.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/oppo_2_MTK_AllInOne_DA.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/Loader/xiaomi_9_DA_6765_6785_6768_6873_6885_6853.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/config/mtk_config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/create_gui.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/eraseFlashPartitions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/de_DE.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/de_DE.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/en_GB.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/en_GB.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/es_CA.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/es_CA.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/es_ES.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/es_ES.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/fr_FR.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/fr_FR.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/generate_translation.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/nl_NL.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/nl_NL.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/sv_SE.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/sv_SE.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/update_translations.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/zh_CN.qm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/i18n/zh_CN.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/initsteps.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/logo_256.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/logo_32.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/logo_512.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/logo_64.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/phone_connected.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/phone_error.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/phone_loading.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/phone_notfound.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/images/phone_success.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/main_gui.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/main_gui.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/readFlashPartitions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/toolkit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/toolsMenu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/unlock_gui.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/gui/writeFlashPartitions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/icon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/payloads/generic_sram_payload.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8168_payload.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8176_payload.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8512_payload.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MANIFEST.in" beforeDir="false" afterPath="$PROJECT_DIR$/MANIFEST.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Setup/Linux/50-android.rules" beforeDir="false" afterPath="$PROJECT_DIR$/Setup/Linux/50-android.rules" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/Port.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/Port.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/daconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/daconfig.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/error.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/error.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/gpt.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/gpt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/hwcrypto.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/hwcrypto.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_dxcc.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_dxcc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_gcpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_gcpu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_sej.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/hwcrypto_sej.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/kamakiri.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/kamakiri.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/legacy_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/legacy_ext.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/meta.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/meta.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/mtk_da_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_da_cmd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/mtk_dalegacy.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_dalegacy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/mtk_daloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_daloader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/mtk_daxflash.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/mtk_daxflash.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/partition.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/partition.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/pltools.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/pltools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/seccfg.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/seccfg.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/usblib.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/Connection/usblib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Library/xflash_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/Library/xflash_ext.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/Loader/Preloader/preloader_ES2.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/config/brom_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/config/brom_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/config/payloads.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/config/payloads.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/config/usb_ids.py" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/config/usb_ids.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/da_x.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/da_x.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/generic_dump_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/generic_dump_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/generic_patcher_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/generic_patcher_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/generic_preloader_dump_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/generic_preloader_dump_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/generic_stage1_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/generic_stage1_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt2601_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt2601_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6261_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6261_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6572_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6572_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6580_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6580_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6582_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6582_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6592_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6592_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6595_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6595_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6735_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6735_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6737_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6737_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6739_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6739_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6753_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6753_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6755_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6755_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6757_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6757_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6758_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6758_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6761_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6761_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6763_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6763_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6765_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6765_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6768_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6768_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6771_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6771_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6779_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6779_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6781_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6781_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6785_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6785_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6795_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6795_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6797_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6797_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6799_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6799_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6833_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6833_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6853_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6853_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6873_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6873_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6877_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6877_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6885_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6885_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt6893_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt6893_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8127_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8127_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8163_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8163_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8167_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8167_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8173_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8173_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8590_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8590_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/mt8695_payload.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/mt8695_payload.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/pl.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/pl.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mtkclient/payloads/stage2.bin" beforeDir="false" afterPath="$PROJECT_DIR$/mtkclient/payloads/stage2.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stage2" beforeDir="false" afterPath="$PROJECT_DIR$/stage2" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="main" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2F5V4nEefBq9Mgq7hFRMXc50UFv" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
+    <property name="cidr.known.project.marker" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1cfa39c9-a897-4bd7-b5bd-f7f68d9e467f" name="Changes" comment="" />
+      <created>1663781745667</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1663781745667</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
+  </component>
+</project>

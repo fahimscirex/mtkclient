@@ -7,12 +7,13 @@ import time
 import os
 from struct import pack, unpack
 from mtkclient.Library.utils import LogBase, print_progress, revdword, logsetup, getint
-from mtkclient.Library.usblib import usb
+from mtkclient.Library.Connection.usblib import usb
 from mtkclient.config.payloads import pathconfig
+
 
 class Kamakiri(metaclass=LogBase):
     def __init__(self, mtk, loglevel=logging.INFO):
-        self.__logger = logsetup(self, self.__logger, loglevel)
+        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
         self.lasterror = ""
         self.mtk = mtk
         self.chipconfig = self.mtk.config.chipconfig
@@ -71,8 +72,11 @@ class Kamakiri(metaclass=LogBase):
 
     def kamakiri2(self, addr):
         self.udev = self.mtk.port.cdc.device
-        self.udev.ctrl_transfer(0x21, 0x20, 0, 0, self.linecode + array.array('B', pack("<I", addr)))
-        self.udev.ctrl_transfer(0x80, 0x6, 0x0200, 0, 9)
+        try:
+            self.udev.ctrl_transfer(0x21, 0x20, 0, 0, self.linecode + array.array('B', pack("<I", addr)))
+            self.udev.ctrl_transfer(0x80, 0x6, 0x0200, 0, 9)
+        except:
+            pass
 
     def da_read_write(self, address, length, data=None, check_result=True):
         self.udev = self.mtk.port.cdc.device
@@ -114,6 +118,7 @@ class Kamakiri(metaclass=LogBase):
             self.da_write(payloadaddr, len(payload), payload)
             self.da_write(ptr_send, 4, pack("<I", payloadaddr), False)
         except usb.core.USBError as e:
+            print("USB CORE ERROR")
             print(e)
         return True
 
@@ -148,7 +153,7 @@ class Kamakiri(metaclass=LogBase):
     def bruteforce2(self, args, startaddr=0x9900):
         found = False
         while not found:
-            self.mtk.init()
+            # self.mtk.init()
             self.mtk.preloader.display = False
             if self.mtk.preloader.init(display=False):
                 self.mtk = self.mtk.crasher(display=False)
@@ -213,6 +218,7 @@ class Kamakiri(metaclass=LogBase):
                         return True, address
                 except RuntimeError:
                     try:
+                        self.info("Bruteforce, testing " + hex(address) + "...")
                         self.mtk.preloader.read32(addr)
                     except:
                         return False, address + 4
@@ -273,11 +279,17 @@ class Kamakiri(metaclass=LogBase):
         self.close()
         return False
 
-    def dump_brom(self, filename, length=0x20000):
+    def dump_brom(self, filename):
         try:
             with open(filename, 'wb') as wf:
                 print_progress(0, 100, prefix='Progress:', suffix='Complete', bar_length=50)
-                wf.write(self.mtk.port.usbread(length))
+                length = self.mtk.port.usbread(4)
+                length = int.from_bytes(length, 'big')
+                rlen = min(length, 0x20000)
+                for i in range(length // rlen):
+                    data = self.mtk.port.usbread(rlen)
+                    wf.write(data)
+                    print_progress(i, length // rlen, prefix='Progress:', suffix='Complete', bar_length=50)
                 print_progress(100, 100, prefix='Progress:', suffix='Complete', bar_length=50)
                 return True
         except Exception as e:

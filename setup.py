@@ -4,7 +4,7 @@ import os
 
 setup(
     name='mtkclient',
-    version='1.5',
+    version='1.6.0',
     packages=find_packages(),
     long_description=open("README.md").read(),
     scripts=['mtk','stage2'],
@@ -24,7 +24,10 @@ setup(
     'colorama',
     'usb',
     'pyusb',
-    'pycryptodome'
+    'pyserial',
+    'pycryptodome',
+    'PySide2',
+    'mock'
     ],
     author='B. Kerler',
     author_email='info@revskills.de',

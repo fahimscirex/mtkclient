@@ -5,6 +5,9 @@ requires = [
     "pyusb",
     "pycryptodome",
     "colorama",
-    "usb"
+    "usb",
+    "shiboken6", 
+    "pyside6",
+    "mock"
 ]
 build-backend = "setuptools.build_meta"

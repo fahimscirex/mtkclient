@@ -5,16 +5,16 @@ import sys
 import logging
 import os
 import time
-import hashlib
 from struct import pack, unpack
 from binascii import hexlify
-from mtkclient.Library.utils import LogBase, progress, read_object, logsetup, structhelper
+from mtkclient.Library.utils import LogBase, logsetup, structhelper
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.daconfig import DaStorage, EMMC_PartitionType
 from mtkclient.Library.partition import Partition
 from mtkclient.config.payloads import pathconfig
-from mtkclient.Library.settings import writesetting
 from mtkclient.Library.legacy_ext import legacyext
+from mtkclient.config.mtk_config import Mtk_Config
+
 
 class norinfo:
     m_nor_ret = None
@@ -25,7 +25,7 @@ class norinfo:
     m_nor_flash_otp_status = None
     m_nor_flash_otp_size = None
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is None:
             return
         sh = structhelper(data)
@@ -60,7 +60,7 @@ class nandinfo32:
     m_nand_flash_id_count = None
     info2 = None
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is None:
             return
         sh = structhelper(data)
@@ -88,7 +88,7 @@ class nandinfo64:
     m_nand_flash_id_count = None
     info2 = None
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is None:
             return
         sh = structhelper(data)
@@ -118,7 +118,7 @@ class nandinfo2:
     m_nand_addr_cycle = None
     m_nand_bmt_exist = None
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is None:
             return
         sh = structhelper(data)
@@ -149,10 +149,11 @@ class emmcinfo:
     m_emmc_cid = None
     m_emmc_fwver = None
 
-    def __init__(self, data = None):
+    def __init__(self, config: Mtk_Config, data=None):
         if data is None:
             return
         sh = structhelper(data)
+        self.config = config
         self.m_emmc_ret = sh.dword(True)
         self.m_emmc_boot1_size = sh.qword(True)
         self.m_emmc_boot2_size = sh.qword(True)
@@ -174,7 +175,8 @@ class emmcinfo:
         res += f"m_emmc_ua_size = {hex(self.m_emmc_ua_size)}\n"
         cid = pack("<QQ", self.m_emmc_cid[0], self.m_emmc_cid[1])
         res += f"m_emmc_cid = {hexlify(cid).decode('utf-8')}\n"
-        writesetting("cid", hexlify(cid).decode('utf-8'))
+        if self.config.hwparam is not None:
+            self.config.set_cid(cid)
         res += f"m_emmc_fwver = {hexlify(self.m_emmc_fwver).decode('utf-8')}\n"
         return res
 
@@ -184,10 +186,11 @@ class sdcinfo:
     m_sdmmc_ua_size = None
     m_sdmmc_cid = None
 
-    def __init__(self, data = None):
+    def __init__(self, config: Mtk_Config, data=None):
         if data is None:
             return
         sh = structhelper(data)
+        self.config = config
         self.m_sdmmc_info = sh.dword(True)
         self.m_sdmmc_ua_size = sh.qword(True)
         self.m_sdmmc_cid = sh.qwords(2, True)
@@ -196,7 +199,8 @@ class sdcinfo:
         print(f"m_sdmmc_info = {hex(self.m_sdmmc_info)}")
         print(f"m_sdmmc_ua_size = {hex(self.m_sdmmc_ua_size)}")
         cid = pack("<QQ", self.m_sdmmc_cid[0], self.m_sdmmc_cid[1])
-        writesetting("cid", hexlify(cid).decode('utf-8'))
+        if self.config.hwparam is not None:
+            self.config.set_cid(cid)
         print(f"m_sdmmc_cid = {hexlify(cid).decode('utf-8')}")
 
 
@@ -650,7 +654,7 @@ class DALegacy(metaclass=LogBase):
         ENTER_RELAY_MODE_CMD = b"\xFF"
 
     def __init__(self, mtk, daconfig, loglevel=logging.INFO):
-        self.__logger = logsetup(self, self.__logger, loglevel)
+        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
         self.debug = self.debug
         self.error = self.error
         self.info = self.info
@@ -672,7 +676,6 @@ class DALegacy(metaclass=LogBase):
         self.sectorsize = self.daconfig.pagesize
         self.totalsectors = self.daconfig.flashsize
         self.partition = Partition(self.mtk, self.readflash, self.read_pmt, loglevel)
-        self.progress = progress(self.daconfig.pagesize)
         self.pathconfig = pathconfig()
         self.patch = False
         self.generatekeys = self.mtk.config.generatekeys
@@ -680,19 +683,19 @@ class DALegacy(metaclass=LogBase):
             self.patch = True
         self.lft = legacyext(self.mtk, self, loglevel)
 
-    def read_reg32(self, addr:int):
-        if self.usbwrite(self.Cmd.READ_REG32_CMD): # 0x7A
+    def read_reg32(self, addr: int):
+        if self.usbwrite(self.Cmd.READ_REG32_CMD):  # 0x7A
             self.usbwrite(pack(">I", addr))
-            value = unpack(">I",self.usbread(4))[0]
+            value = unpack(">I", self.usbread(4))[0]
             ack = self.usbread(1)
             if ack == self.Rsp.ACK:
                 return value
         return None
 
-    def write_reg32(self, addr:int, data:int):
+    def write_reg32(self, addr: int, data: int):
         self.usbwrite(self.Cmd.WRITE_REG32_CMD)  # 0x7B
-        self.usbwrite(pack(">I",addr))
-        self.usbwrite(pack(">I",data))
+        self.usbwrite(pack(">I", addr))
+        self.usbwrite(pack(">I", data))
         ack = self.usbread(1)
         if ack == self.Rsp.ACK:
             return True
@@ -818,8 +821,9 @@ class DALegacy(metaclass=LogBase):
 
     def set_stage2_config(self, hwcode):
         # m_nor_chip_select[0]="CS_0"(0x00), m_nor_chip_select[1]="CS_WITH_DECODER"(0x08)
-        self.usbwrite(pack("B",self.mtk.config.blver))
-        self.usbwrite(pack("B",self.mtk.config.bromver))
+        self.config.set_da_config(self.daconfig)
+        self.usbwrite(pack("B", self.mtk.config.bromver))
+        self.usbwrite(pack("B", self.mtk.config.blver))
         m_nor_chip = 0x08
         self.usbwrite(pack(">H", m_nor_chip))
         m_nor_chip_select = 0x00
@@ -829,7 +833,6 @@ class DALegacy(metaclass=LogBase):
         self.config.bmtsettings(self.config.hwcode)
         self.usbwrite(pack("B", self.config.bmtflag))
         self.usbwrite(pack(">I", self.config.bmtpartsize))
-        # self.usbwrite(pack(">I", bmtblockcount))
         # unsigned char force_charge=0x02; //Setting in tool: 0x02=Auto, 0x01=On
         force_charge = 0x02
         self.usbwrite(pack("B", force_charge))
@@ -846,7 +849,6 @@ class DALegacy(metaclass=LogBase):
         if hwcode == 0x6592:
             is_gpt_solution = 0
             self.usbwrite(pack(">I", is_gpt_solution))
-            toread = (6 * 4)
         elif hwcode == 0x6580 or hwcode == 0x8163:
             slc_percent = 0x1
             self.usbwrite(pack(">I", slc_percent))
@@ -863,10 +865,13 @@ class DALegacy(metaclass=LogBase):
             skipdl = 0
             self.usbwrite(pack(">I", skipdl))
         elif hwcode == 0x6582:
-            newcombo = 0
+            newcombo = 1
             self.usbwrite(pack(">I", newcombo))
         time.sleep(0.350)
         buffer = self.usbread(toread)
+        if buffer == b'':
+            self.error("Didn't receive Stage2 dram info, please check usb cable/hub and retry.")
+            return False
         if toread == 4 and buffer == pack(">I", 0xBC3):
             buffer += self.usbread(4)
             pdram = [b"", b""]
@@ -895,45 +900,73 @@ class DALegacy(metaclass=LogBase):
                 nand_ids = []
                 for i in range(0, nand_id_count):
                     nand_ids.append(unpack(">H", self.usbread(2))[0])
-                if self.daconfig.emi is not None: # toDo
+                if self.daconfig.emi is not None:  # toDo
                     self.usbwrite(self.Cmd.ENABLE_DRAM)  # E8
-                    self.usbwrite(pack(">I", self.daconfig.emiver))
-                    if self.usbread(1) == self.Rsp.ACK:
+                    if self.daconfig.emiver == 0:
+                        self.usbwrite(pack(">I", 0xFFFFFFFF))
+                    else:
+                        self.usbwrite(pack(">I", self.daconfig.emiver))
+                    ret = self.usbread(1)
+                    if ret == self.Rsp.NACK:
+                        self.error("EMI Config not accepted :(")
+                        return False
+                    if ret == self.Rsp.ACK:
                         self.info("Sending dram info ...")
                         dramlength = len(self.daconfig.emi)
                         if self.daconfig.emiver in [0x10, 0x14, 0x15]:
                             dramlength = unpack(">I", self.usbread(0x4))[0]  # 0x000000BC
-                            self.debug("Info: " + hex(dramlength))
+                            self.info("RAM-Length: " + hex(dramlength))
                             self.usbwrite(self.Rsp.ACK)
                             lendram = len(self.daconfig.emi)
                             self.usbwrite(pack(">I", lendram))
                         elif self.daconfig.emiver in [0x0B]:
                             info = self.usbread(0x10)  # 0x000000BC
-                            self.debug("Info: " + hexlify(info).decode('utf-8'))
+                            self.info("RAM-Info: " + hexlify(info).decode('utf-8'))
                             dramlength = unpack(">I", self.usbread(0x4))[0]
                             self.usbwrite(self.Rsp.ACK)
+                        elif self.daconfig.emiver in [0x0D]:
+                            dramlength = unpack(">I", self.usbread(0x4))[0]
+                            self.info("RAM-Length: " + hex(dramlength))
+                            self.usbwrite(self.Rsp.ACK)
+                            self.daconfig.emi = self.daconfig.emi[:dramlength]
+                            self.daconfig.emi = pack(">I", 0x100) + self.daconfig.emi[0x4:dramlength]
+                        elif self.daconfig.emiver in [0x00]:
+                            dramlength = unpack(">I", self.usbread(0x4))[0]  # 0x000000B0
+                            self.info("RAM-Length: " + hex(dramlength))
+                            self.usbwrite(self.Rsp.ACK)
+                            lendram = len(self.daconfig.emi)
+                            self.daconfig.emi = self.daconfig.emi[:dramlength]
+                            self.usbwrite(pack(">I", dramlength))
+                        else:
+                            self.warning("Unknown emi version: %d" % self.daconfig.emiver)
                         self.usbwrite(self.daconfig.emi)
                         checksum = unpack(">H", self.usbread(2))[0]  # 0x440C
-                        self.debug("Status: %04X" % checksum)
+                        self.info("Checksum: %04X" % checksum)
                         self.usbwrite(self.Rsp.ACK)
                         self.usbwrite(pack(">I", 0x80000001))  # Send DRAM config
                         m_ext_ram_ret = unpack(">I", self.usbread(4))[0]  # 0x00000000 S_DONE
                         self.info(f"M_EXT_RAM_RET : {m_ext_ram_ret}")
                         if m_ext_ram_ret != 0:
-                            self.error("Preloader error: %d => %s" % (m_ext_ram_ret, error_to_string(m_ext_ram_ret)))
+                            self.error("Preloader error: 0x%X => %s" % (m_ext_ram_ret, error_to_string(m_ext_ram_ret)))
                             self.mtk.port.close(reset=False)
-                            sys.exit(0)
+                            return False
                         m_ext_ram_type = self.usbread(1)[0]  # 0x02 HW_RAM_DRAM
                         self.info(f"M_EXT_RAM_TYPE : {hex(m_ext_ram_type)}")
                         m_ext_ram_chip_select = self.usbread(1)[0]  # 0x00 CS_0
                         self.info(f"M_EXT_RAM_CHIP_SELECT : {hex(m_ext_ram_chip_select)}")
                         m_ext_ram_size = unpack(">Q", self.usbread(8))[0]  # 0x80000000
                         self.info(f"M_EXT_RAM_SIZE : {hex(m_ext_ram_size)}")
+                        if self.daconfig.emiver in [0x0D]:
+                            self.usbread(4)  # 00000003
+                            Raw_0 = self.usbread(4)  # 1C004004
+                            Raw_1 = self.usbread(4)  # aa080033
+                            CJ_0 = self.usbread(4)  # 00000013
+                            CJ_1 = self.usbread(4)  # 00000010
                 else:
                     self.error("Preloader needed due to dram config.")
                     self.mtk.port.close(reset=True)
-                    sys.exit(0)
-        return buffer
+                    return False
+        return True
 
     def read_flash_info(self):
         self.nor = norinfo(self.usbread(0x1C))
@@ -949,8 +982,8 @@ class DALegacy(metaclass=LogBase):
         m_nand_dev_code = unpack(">" + str(nandcount) + "H", nc)
         self.nand.m_nand_flash_dev_code = m_nand_dev_code
         self.nand.info2 = nandinfo2(self.usbread(9))
-        self.emmc = emmcinfo(self.usbread(0x5C))
-        self.sdc = sdcinfo(self.usbread(0x1C))
+        self.emmc = emmcinfo(self.config, self.usbread(0x5C))
+        self.sdc = sdcinfo(self.config, self.usbread(0x1C))
         self.flashconfig = configinfo(self.usbread(0x26))
         pi = passinfo(self.usbread(0xA))
         if pi.ack == 0x5A:
@@ -961,32 +994,38 @@ class DALegacy(metaclass=LogBase):
         return False
 
     def upload(self):
-        if self.daconfig.da is None:
+        if self.daconfig.da_loader is None:
             self.error("No valid da loader found... aborting.")
             return False
         loader = self.daconfig.loader
         self.info(f"Uploading legacy stage 1 from {os.path.basename(loader)}")
         with open(loader, 'rb') as bootldr:
             # stage 1
-            da1offset = self.daconfig.da.region[1].m_buf
-            da1size = self.daconfig.da.region[1].m_len
-            da1address = self.daconfig.da.region[1].m_start_addr
-            da2address = self.daconfig.da.region[1].m_start_addr
-            da1sig_len = self.daconfig.da.region[1].m_sig_len
+            da1offset = self.daconfig.da_loader.region[1].m_buf
+            da1size = self.daconfig.da_loader.region[1].m_len
+            da1address = self.daconfig.da_loader.region[1].m_start_addr
+            da2address = self.daconfig.da_loader.region[1].m_start_addr
+            da1sig_len = self.daconfig.da_loader.region[1].m_sig_len
             bootldr.seek(da1offset)
             da1 = bootldr.read(da1size)
             # ------------------------------------------------
-            da2offset = self.daconfig.da.region[2].m_buf
-            da2sig_len = self.daconfig.da.region[2].m_sig_len
+            da2offset = self.daconfig.da_loader.region[2].m_buf
+            da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
             bootldr.seek(da2offset)
-            da2 = bootldr.read(self.daconfig.da.region[2].m_len)
+            da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
 
-            hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da2sig_len)
-            if hashaddr is not None:
-                da2 = self.lft.patch_da2(da2)
-                da1 = self.mtk.daloader.fix_hash(da1, da2, hashaddr, hashmode, hashlen)
-                self.patch = True
-                self.daconfig.da2 = da2[:hashlen]
+            if self.mtk.config.is_brom or not self.mtk.config.target_config["sbc"]:
+                hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da2sig_len)
+                if hashaddr is not None:
+                    da2patched = self.lft.patch_da2(da2)
+                    if da2patched != da2:
+                        da1 = self.mtk.daloader.fix_hash(da1, da2patched, hashaddr, hashmode, hashlen)
+                        self.patch = True
+                        self.daconfig.da2 = da2patched[:hashlen]+da2[hashlen:hashlen+da2sig_len]
+                    else:
+                        self.daconfig.da2 = da2[:hashlen]+da2[hashlen:hashlen+da2sig_len]
+                else:
+                    self.daconfig.da2 = da2[:-da2sig_len]
             else:
                 self.daconfig.da2 = da2[:-da2sig_len]
 
@@ -1029,34 +1068,40 @@ class DALegacy(metaclass=LogBase):
             ackval = self.usbread(1)
             ackval += self.usbread(1)
             ackval += self.usbread(1)
-            self.debug("ACK: " + hexlify(ackval).decode('utf-8'))
+            self.info("ACK: " + hexlify(ackval).decode('utf-8'))
             self.info("Setting stage 2 config ...")
-            self.set_stage2_config(self.config.hwcode)
-            self.info("Uploading stage 2...")
-            # stage 2
-            if self.brom_send(self.daconfig, da2, 2):
-                if self.read_flash_info():
-                    if self.daconfig.flashtype == "nand":
-                        self.daconfig.flashsize = self.nand.m_nand_flash_size
-                    elif self.daconfig.flashtype == "emmc":
-                        self.daconfig.flashsize = self.emmc.m_emmc_ua_size
-                        if self.daconfig.flashsize == 0:
-                            self.daconfig.flashsize = self.sdc.m_sdmmc_ua_size
-                    elif self.daconfig.flashtype == "nor":
-                        self.daconfig.flashsize = self.nor.m_nor_flash_size
-                    self.info("Reconnecting to preloader")
-                    self.set_usb_cmd()
-                    self.mtk.port.close(reset=False)
-                    time.sleep(2)
-                    while not self.mtk.port.cdc.connect():
-                        time.sleep(0.5)
-                    self.info("Connected to preloader")
-                    self.check_usb_cmd()
-                    return True
-            return False
+            if self.set_stage2_config(self.config.hwcode):
+                self.info("Uploading stage 2...")
+                # stage 2
+                if self.brom_send(self.daconfig, self.daconfig.da2, 2):
+                    if self.read_flash_info():
+                        if self.daconfig.flashtype == "nand":
+                            self.daconfig.flashsize = self.nand.m_nand_flash_size
+                        elif self.daconfig.flashtype == "emmc":
+                            self.daconfig.flashsize = self.emmc.m_emmc_ua_size
+                            if self.daconfig.flashsize == 0:
+                                self.daconfig.flashsize = self.sdc.m_sdmmc_ua_size
+                        elif self.daconfig.flashtype == "nor":
+                            self.daconfig.flashsize = self.nor.m_nor_flash_size
+                        self.info("Connected to preloader")
+                        speed = self.check_usb_cmd()
+                        if speed[0] == 0:  # 1 = USB High Speed, 2= USB Ultra high speed
+                            self.info("Reconnecting to preloader")
+                            self.set_usb_cmd()
+                            self.mtk.port.close(reset=False)
+                            time.sleep(1)
+                            while not self.mtk.port.cdc.connect():
+                                self.info("Waiting for reconnection")
+                                time.sleep(0.5)
+                            if self.check_usb_cmd():
+                                self.info("Connected to preloader")
+                            else:
+                                return False
+                        return True
+        return False
 
     def upload_da(self):
-        self.info("Uploading da...")
+        self.info("Uploading legacy da...")
         if self.upload():
             self.info(self.flashconfig)
             if self.daconfig.flashtype == "emmc":
@@ -1070,14 +1115,20 @@ class DALegacy(metaclass=LogBase):
             return True
         return False
 
-    def close(self):
-        self.finish(0x0)  # DISCONNECT_USB_AND_RELEASE_POWERKEY
+    class ShutDownModes:
+        NORMAL = 0
+        HOME_SCREEN = 1
+        FASTBOOT = 2
+
+    def shutdown(self, async_mode: int = 0, dl_bit: int = 0, bootmode: ShutDownModes = ShutDownModes.NORMAL):
+        self.finish(bootmode)  # DISCONNECT_USB_AND_RELEASE_POWERKEY
         self.mtk.port.close(reset=True)
 
     def brom_send(self, dasetup, dadata, stage, packetsize=0x1000):
-        offset = dasetup.da.region[stage].m_buf
-        size = dasetup.da.region[stage].m_len
-        address = dasetup.da.region[stage].m_start_addr
+        offset = dasetup.da_loader.region[stage].m_buf
+        dasize=len(dadata)
+        size = dasetup.da_loader.region[stage].m_len
+        address = dasetup.da_loader.region[stage].m_start_addr
         self.usbwrite(pack(">I", address))
         self.usbwrite(pack(">I", size))
         self.usbwrite(pack(">I", packetsize))
@@ -1088,30 +1139,32 @@ class DALegacy(metaclass=LogBase):
                 buffer = self.usbread(1)
                 if buffer != self.Rsp.ACK:
                     self.error(
-                        f"Error on sending brom stage {stage - 1} addr {hex(pos)}: " + hexlify(buffer).decode('utf-8'))
+                        f"Error on sending brom stage {stage} addr {hex(pos)}: " + hexlify(buffer).decode('utf-8'))
+                    self.config.set_gui_status(self.config.tr("Error on sending brom stage"))
                     break
             time.sleep(0.5)
             self.usbwrite(self.Rsp.ACK)
             buffer = self.usbread(1)
             if buffer == self.Rsp.ACK:
-                self.info(f"Successfully uploaded stage {stage - 1}")
+                self.info(f"Successfully uploaded stage {stage}")
+                self.config.set_gui_status(self.config.tr(f"Successfully uploaded stage {stage}"))
                 return True
         else:
-            self.error(f"Error on sending brom stage {stage - 1} : " + hexlify(buffer).decode('utf-8'))
+            self.error(f"Error on sending brom stage {stage} : " + hexlify(buffer).decode('utf-8'))
+            self.config.set_gui_status(self.config.tr("Error on sending brom stage"))
         return False
 
     def check_usb_cmd(self):
         if self.usbwrite(self.Cmd.USB_CHECK_STATUS):  # 72
             res = self.usbread(1)
             if res == self.Rsp.ACK:
-                res = self.usbread(1)
-                if len(res) > 0:
-                    return True
-        return False
+                speed = self.usbread(1)
+                return speed
+        return None
 
     def set_usb_cmd(self):
         if self.usbwrite(self.Cmd.USB_SETUP_PORT):  # 72
-            if self.usbwrite(b"\x01"):
+            if self.usbwrite(b"\x01"):  # USB_HIGH_SPEED
                 res = self.usbread(1)
                 if len(res) > 0:
                     if res[0] is self.Rsp.ACK[0]:
@@ -1146,7 +1199,7 @@ class DALegacy(metaclass=LogBase):
         if filename is not None:
             fh = open(filename, "rb")
             fh.seek(offset)
-        self.progress.show_progress("Write", 0, 100, display)
+        self.mtk.daloader.progress.show_progress("Write", 0, length, display)
         self.usbwrite(self.Cmd.SDMMC_WRITE_DATA_CMD)
         self.usbwrite(pack(">B", storage))
         self.usbwrite(pack(">B", parttype))
@@ -1170,11 +1223,11 @@ class DALegacy(metaclass=LogBase):
             if self.usbread(1) != self.Rsp.CONT_CHAR:
                 self.error("Data ack failed for sdmmc_write_data")
                 return False
-            self.progress.show_progress("Write", offset, length, display)
+            self.mtk.daloader.progress.show_progress("Write", offset, length, display)
             offset += count
         if fh:
             fh.close()
-        self.progress.show_progress("Write", 100, 100, display)
+        self.mtk.daloader.progress.show_progress("Write", length, length, display)
         return True
 
     def get_storage(self):
@@ -1205,7 +1258,7 @@ class DALegacy(metaclass=LogBase):
                     ack = unpack(">B", self.usbread(1))[0]
                     if ack == self.Rsp.ACK[0]:
                         self.usbwrite(self.Rsp.ACK)
-                self.progress.show_progress("Write", 0, 100, display)
+                self.mtk.daloader.progress.show_progress("Write", 0, length, display)
                 checksum = 0
                 bytestowrite = length
                 while bytestowrite > 0:
@@ -1213,7 +1266,7 @@ class DALegacy(metaclass=LogBase):
                     for i in range(0, size, 0x400):
                         data = bytearray(rf.read(size))
                         pos = length - bytestowrite
-                        self.progress.show_progress("Write", pos, length, display)
+                        self.mtk.daloader.progress.show_progress("Write", pos, length, display)
                         if self.usbwrite(data):
                             bytestowrite -= size
                             if bytestowrite == 0:
@@ -1229,15 +1282,17 @@ class DALegacy(metaclass=LogBase):
                                     return True
                                 else:
                                     self.usbwrite(self.Rsp.ACK)
-                self.progress.show_progress("Write", 100, 100, display)
+                self.mtk.daloader.progress.show_progress("Write", length, length, display)
                 return True
         return True
 
     def writeflash(self, addr, length, filename, offset=0, parttype=None, wdata=None, display=True):
+        self.mtk.daloader.progress.clear()
         return self.sdmmc_write_data(addr=addr, length=length, filename=filename, offset=offset, parttype=parttype,
                                      wdata=wdata, display=display)
 
     def formatflash(self, addr, length, parttype=None, display=True):
+        self.mtk.daloader.progress.clear()
         length, parttype = self.get_parttype(length, parttype)
         self.check_usb_cmd()
         if self.daconfig.flashtype == "emmc":
@@ -1301,6 +1356,7 @@ class DALegacy(metaclass=LogBase):
         return length, parttype
 
     def readflash(self, addr, length, filename, parttype=None, display=True):
+        self.mtk.daloader.progress.clear()
         length, parttype = self.get_parttype(length, parttype)
         self.check_usb_cmd()
         packetsize = 0x0
@@ -1316,7 +1372,7 @@ class DALegacy(metaclass=LogBase):
             ack = self.usbread(1)[0]
             if ack is not self.Rsp.ACK[0]:
                 self.usbwrite(b"\xA5")
-                res=unpack("<I",self.usbread(4))[0]
+                res = unpack("<I", self.usbread(4))[0]
                 self.error(f"Error on sending emmc read command, response: {hex(ack)}, status: {hex(res)}")
                 exit(1)
             self.daconfig.readsize = self.daconfig.flashsize
@@ -1341,7 +1397,7 @@ class DALegacy(metaclass=LogBase):
             self.daconfig.readsize = self.daconfig.flashsize // self.daconfig.pagesize * (
                     self.daconfig.pagesize + self.daconfig.sparesize)
         if display:
-            self.progress.show_progress("Read", 0, 100, display)
+            self.mtk.daloader.progress.show_progress("Read", 0, length, display)
         if filename != "":
             with open(filename, "wb") as wf:
                 bytestoread = length
@@ -1354,12 +1410,17 @@ class DALegacy(metaclass=LogBase):
                     checksum = unpack(">H", self.usbread(1) + self.usbread(1))[0]
                     self.debug("Checksum: %04X" % checksum)
                     self.usbwrite(self.Rsp.ACK)
-                    self.progress.show_progress("Read", length - bytestoread, length, display)
-                self.progress.show_progress("Read", 100, 100, display)
+                    if length > bytestoread:
+                        rpos = length - bytestoread
+                    else:
+                        rpos = 0
+                    self.mtk.daloader.progress.show_progress("Read", rpos, length, display)
+                self.mtk.daloader.progress.show_progress("Read", length, length, display)
                 return True
         else:
             buffer = bytearray()
             bytestoread = length
+            self.mtk.daloader.progress.show_progress("Read", 0, length, display)
             while bytestoread > 0:
                 size = bytestoread
                 if bytestoread > packetsize:
@@ -1369,6 +1430,10 @@ class DALegacy(metaclass=LogBase):
                 checksum = unpack(">H", self.usbread(2))[0]
                 self.debug("Checksum: %04X" % checksum)
                 self.usbwrite(self.Rsp.ACK)
-                self.progress.show_progress("Read", length - bytestoread, length, display)
-            self.progress.show_progress("Read", 100, 100, display)
+                if length > bytestoread:
+                    rpos = length - bytestoread
+                else:
+                    rpos = 0
+                self.mtk.daloader.progress.show_progress("Read", rpos, length, display)
+            self.mtk.daloader.progress.show_progress("Read", length, length, display)
             return buffer

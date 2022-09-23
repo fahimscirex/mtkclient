@@ -5,7 +5,8 @@ import json
 import logging
 import os
 import hashlib
-from mtkclient.Library.utils import LogBase, logsetup
+from binascii import hexlify
+from mtkclient.Library.utils import LogBase, logsetup, progress
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.daconfig import DAconfig
 from mtkclient.Library.mtk_dalegacy import DALegacy, norinfo, emmcinfo, sdcinfo, nandinfo64
@@ -13,11 +14,12 @@ from mtkclient.Library.mtk_daxflash import DAXFlash
 from mtkclient.config.brom_config import damodes
 from mtkclient.Library.xflash_ext import xflashext
 from mtkclient.Library.legacy_ext import legacyext
+from mtkclient.Library.settings import hwparam
 
 
 class DAloader(metaclass=LogBase):
     def __init__(self, mtk, loglevel=logging.INFO):
-        self.__logger = logsetup(self, self.__logger, loglevel)
+        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
         self.mtk = mtk
         self.config = mtk.config
         self.loglevel = loglevel
@@ -31,17 +33,24 @@ class DAloader(metaclass=LogBase):
         self.rword = self.mtk.port.rword
         self.daconfig = DAconfig(mtk=self.mtk, loader=self.mtk.config.loader,
                                  preloader=self.mtk.config.preloader, loglevel=loglevel)
+        self.hwparam = hwparam(mtk.config.meid)
+        self.progress = progress(self.daconfig.pagesize, self.mtk.config.guiprogress)
         self.xft = None
         self.lft = None
         self.da = None
+        self.xflash = None
 
     def writestate(self):
         config = {}
-        config["xflash"] = self.mtk.config.chipconfig.damode==damodes.XFLASH
+        config["xflash"] = self.mtk.config.chipconfig.damode == damodes.XFLASH
         config["hwcode"] = self.config.hwcode
+        if self.config.meid is not None:
+            config["meid"] = hexlify(self.config.meid).decode('utf-8')
+        if self.config.socid is not None:
+            config["socid"] = hexlify(self.config.socid).decode('utf-8')
         config["flashtype"] = self.daconfig.flashtype
         config["flashsize"] = self.daconfig.flashsize
-        if not self.mtk.config.chipconfig.damode==damodes.XFLASH:
+        if not self.mtk.config.chipconfig.damode == damodes.XFLASH:
             config["m_emmc_ua_size"] = self.da.emmc.m_emmc_ua_size
             config["m_emmc_boot1_size"] = self.da.emmc.m_emmc_boot1_size
             config["m_emmc_boot2_size"] = self.da.emmc.m_emmc_boot2_size
@@ -53,7 +62,7 @@ class DAloader(metaclass=LogBase):
         open(".state", "w").write(json.dumps(config))
 
     def compute_hash_pos(self, da1, da2, da2sig_len):
-        hashlen = len(da2)-da2sig_len
+        hashlen = len(da2) - da2sig_len
 
         hashmode, idx = self.calc_da_hash(da1, da2[:hashlen])
         if idx == -1:
@@ -82,6 +91,7 @@ class DAloader(metaclass=LogBase):
             dahash = hashlib.sha1(da2[:hashlen]).digest()
         elif hashmode == 2:
             dahash = hashlib.sha256(da2[:hashlen]).digest()
+        orighash=da1[hashpos:hashpos + len(dahash)]
         da1[hashpos:hashpos + len(dahash)] = dahash
         return da1
 
@@ -89,6 +99,10 @@ class DAloader(metaclass=LogBase):
         if os.path.exists(".state"):
             config = json.loads(open(".state", "r").read())
             self.config.hwcode = config["hwcode"]
+            if "meid" in config:
+                self.config.meid = bytes.fromhex(config["meid"])
+            if "socid" in config:
+                self.config.socid = bytes.fromhex(config["socid"])
             self.xflash = config["xflash"]
             self.config.init_hwcode(self.config.hwcode)
             if self.xflash:
@@ -104,9 +118,9 @@ class DAloader(metaclass=LogBase):
                 self.daconfig.flashsize = config["flashsize"]
                 self.da.nor = norinfo()
                 self.da.nand = nandinfo64()
-                self.da.emmc = emmcinfo()
-                self.da.sdc = sdcinfo()
-                self.lft=legacyext(self.mtk, self.da, self.loglevel)
+                self.da.emmc = emmcinfo(self.config)
+                self.da.sdc = sdcinfo(self.config)
+                self.lft = legacyext(self.mtk, self.da, self.loglevel)
                 self.da.emmc.m_emmc_ua_size = config["m_emmc_ua_size"]
                 self.da.emmc.m_emmc_boot1_size = config["m_emmc_boot1_size"]
                 self.da.emmc.m_emmc_boot2_size = config["m_emmc_boot2_size"]
@@ -140,7 +154,7 @@ class DAloader(metaclass=LogBase):
             self.xflash = True
         if self.xflash:
             self.da = DAXFlash(self.mtk, self.daconfig, self.loglevel)
-            if porttype not in ["off","usb","uart"]:
+            if porttype not in ["off", "usb", "uart"]:
                 self.error("Only \"off\",\"usb\" or \"uart\" are allowed.")
             if self.da.set_meta(porttype):
                 self.info(f"Successfully set meta mode to {porttype}")
@@ -181,8 +195,13 @@ class DAloader(metaclass=LogBase):
     def upload(self):
         return self.da.upload()
 
-    def close(self):
-        return self.da.close()
+    class ShutDownModes:
+        NORMAL = 0
+        HOME_SCREEN = 1
+        FASTBOOT = 2
+
+    def shutdown(self, bootmode=ShutDownModes.NORMAL):
+        return self.da.shutdown(async_mode=0, dl_bit=0, bootmode=bootmode)
 
     def upload_da(self, preloader=None):
         self.daconfig.setup()
@@ -200,7 +219,14 @@ class DAloader(metaclass=LogBase):
     def readflash(self, addr, length, filename, parttype, display=True):
         return self.da.readflash(addr=addr, length=length, filename=filename, parttype=parttype, display=display)
 
-    def peek(self, addr: int, length:int):
+    def get_packet_length(self):
+        if self.xflash:
+            pt = self.da.get_packet_length()
+            return pt.read_packet_length
+        else:
+            return 512
+
+    def peek(self, addr: int, length: int):
         if self.xflash:
             return self.xft.custom_read(addr=addr, length=length)
         else:
@@ -218,6 +244,9 @@ class DAloader(metaclass=LogBase):
         else:
             return self.lft.generate_keys()
 
+    def is_patched(self):
+        return self.da.patch
+
     def seccfg(self, lockflag):
         if self.xflash:
             return self.xft.seccfg(lockflag)
@@ -234,4 +263,10 @@ class DAloader(metaclass=LogBase):
         if self.xflash:
             return self.xft.write_rpmb(filename)
         self.error("Device is not in xflash mode, cannot run write rpmb cmd.")
+        return False
+
+    def erase_rpmb(self):
+        if self.xflash:
+            return self.xft.erase_rpmb()
+        self.error("Device is not in xflash mode, cannot run erase rpmb cmd.")
         return False
